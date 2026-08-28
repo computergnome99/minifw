@@ -1,6 +1,6 @@
 import { isHtmx } from "../../helpers";
 import type { MiniContext } from "../../core/shared";
-import { extractParams as extractParameters } from "./extract-parameters";
+import { extractParameters } from "./extract-parameters";
 
 /**
  * Build a MiniContext from a request and matched route.

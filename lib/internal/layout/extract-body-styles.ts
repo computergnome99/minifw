@@ -1,6 +1,6 @@
 import { parseHTML } from "linkedom";
 import { html } from "../../helpers";
-import { STYLE_ID_ATTR } from "../encapsulate-styles";
+import { STYLE_ID_ATTR, STYLE_ID_SELECTOR } from "../encapsulate-styles";
 
 /**
  * Extract route-scoped style tags from body content and return deduped tags.
@@ -26,9 +26,7 @@ export function extractBodyStyles(content: string): {
     return { content, styles: [] };
   }
 
-  const styleNodes = root.querySelectorAll(
-    `style[${CSS.escape(STYLE_ID_ATTR)}]`,
-  );
+  const styleNodes = root.querySelectorAll(STYLE_ID_SELECTOR);
 
   const seen = new Set<string>();
   const styles: string[] = [];
@@ -49,7 +47,7 @@ export function extractBodyStyles(content: string): {
   }
 
   return {
-    content: root.getHTML(),
+    content: root.innerHTML,
     styles,
   };
 }

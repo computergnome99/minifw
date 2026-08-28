@@ -16,7 +16,7 @@ describe("loadScriptEntry", () => {
       Bun.file(import.meta.dir + "/../../core/__fixtures__/scripts/global.ts"),
     );
 
-    expect(output).toContain("window.__miniScriptFromImport=");
+    expect(output).toContain("globalThis.__miniScriptFromImport=");
     expect(output).not.toContain('from "./dep"');
   });
 });

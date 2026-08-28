@@ -9,6 +9,9 @@ export const SCOPE_ATTR = "fwsc";
 /** Attribute used on injected <style> tags for deterministic dedupe IDs. */
 export const STYLE_ID_ATTR = "fwid";
 
+/** Selector for injected style tags that carry a deterministic dedupe ID. */
+export const STYLE_ID_SELECTOR = "style[fwid]";
+
 /**
  * Derive a short, deterministic scope ID from a route string by hashing it with
  * SHA-256, encoding the digest as URL-safe base64, and taking the first 10
@@ -137,7 +140,7 @@ export function encapsulateStyles(
   }
 
   return {
-    markup: document.body.getHTML(),
+    markup: document.body.innerHTML,
     css: scopeCss(css, id),
   };
 }

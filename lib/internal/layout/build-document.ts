@@ -5,7 +5,7 @@ import type {
 } from "../../core/layout";
 import { runtime } from "../../runtime/runtime";
 import { html } from "../../helpers";
-import { buildBodyAttrs as buildBodyAttributes } from "./build-body-attributes";
+import { buildBodyAttributes } from "./build-body-attributes";
 import { buildHtmxTag } from "./build-htmx-tag";
 import { extractBodyStyles } from "./extract-body-styles";
 
@@ -66,7 +66,7 @@ export async function buildDocument(
   if (htmxTag) headTags.push(htmxTag);
   if (extraHead) headTags.push(extraHead);
 
-  const bodyAttributes = buildBodyAttributes(options?.bodyArgs);
+  const bodyAttributes = buildBodyAttributes(options?.bodyArguments);
 
   return html`
     <!DOCTYPE html>

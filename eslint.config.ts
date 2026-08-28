@@ -36,6 +36,7 @@ export default defineConfig(
       "jsdoc/require-param-description": "off",
       "jsdoc/require-returns": "off",
       "jsdoc/require-returns-description": "off",
+      "unicorn/prefer-dom-node-html-methods": "off",
       "unicorn/single-line-block-comment-style": "off",
       "@typescript-eslint/consistent-type-imports": [
         "warn",
@@ -44,6 +45,13 @@ export default defineConfig(
           fixStyle: "separate-type-imports",
         },
       ],
+    },
+  },
+  {
+    files: ["lib/core/__fixtures__/**/*.ts"],
+    rules: {
+      "unicorn/filename-case": "off",
+      "unicorn/no-global-object-property-assignment": "off",
     },
   },
 );
