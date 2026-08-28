@@ -1,0 +1,5 @@
+@import "./tokens.css";
+
+.app {
+  color: var(--brand);
+}

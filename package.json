@@ -1,0 +1,57 @@
+{
+  "name": "minifw",
+  "version": "0.0.1",
+  "module": "index.ts",
+  "type": "module",
+  "description": "A simple, server-side framework for building hypermedia apps quickly with HTMX.",
+  "license": "MIT",
+  "repository": {},
+  "bugs": {},
+  "homepage": "https://www.calvinbonner.dev/demos/minifw",
+  "keywords": [
+    "htmx",
+    "htmx4",
+    "hypermedia",
+    "bun",
+    "typescript",
+    "ts",
+    "ssr",
+    "framework"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "bun run clean && bun build ./lib/core/index.ts ./lib/helpers/index.ts --outdir ./dist --target bun && tsc --project tsconfig.build.json",
+    "test": "bun test",
+    "test:types": "tsc --noEmit",
+    "lint": "eslint --cache lib eslint.config.ts prettier.config.ts",
+    "lint:fix": "bun run lint -- --fix",
+    "format": "bun run lint && prettier --check .",
+    "format:write": "bun run lint:fix && prettier --write .",
+    "prepack": "bun run build"
+  },
+  "dependencies": {
+    "html-minifier-terser": "^7.2",
+    "lightningcss": "^1.32.0",
+    "linkedom": "^0.18.12"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/html-minifier-terser": "^7.0.2",
+    "jiti": "^2.7.0",
+    "eslint": "^10",
+    "eslint-plugin-prettier": "^5.5",
+    "eslint-config-prettier": "^10",
+    "prettier": "^3",
+    "prettier-plugin-jsdoc": "^1.8",
+    "typescript": "^5",
+    "typescript-eslint": "^8"
+  },
+  "peerDependencies": {
+    "bun": "^1.4"
+  }
+}

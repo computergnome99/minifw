@@ -1,0 +1,132 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import { layout } from "./layout";
+import { mini } from "./mini";
+import { page } from "./page";
+import { partial } from "./partial";
+
+const servers: Bun.Server<undefined>[] = [];
+
+function localTestUrl(server: Bun.Server<undefined>, path: string): string {
+  const hostname = server.hostname ?? "127.0.0.1";
+
+  if (hostname !== "127.0.0.1" && hostname !== "localhost") {
+    throw new Error(`Unexpected non-local hostname in test: ${hostname}`);
+  }
+
+  if (server.port == null) {
+    throw new Error("Server did not expose a TCP port for test requests");
+  }
+
+  return `http://127.0.0.1:${server.port}${path}`;
+}
+
+afterEach(async () => {
+  while (servers.length > 0) {
+    const server = servers.pop();
+    if (server) {
+      await server.stop(true);
+    }
+  }
+});
+
+describe("mini integration", () => {
+  test("uses default layout when no layout is provided", async () => {
+    const server = mini({
+      routes: {
+        "/": page(() => "<main>Home</main>", {
+          head: { title: "Home" },
+        }),
+      },
+      port: 0,
+    });
+    servers.push(server);
+
+    const res = await fetch(localTestUrl(server, "/"));
+    const body = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(body).toContain("<html>");
+    expect(body).toContain("<body");
+    expect(body).toContain("<main><main>Home</main></main>");
+  });
+
+  test("uses provided layout for route rendering", async () => {
+    const server = mini({
+      routes: {
+        "/": page(() => "<article>Custom</article>", {
+          head: { title: "Custom" },
+        }),
+      },
+      layout: layout(
+        ({ page }) => `<section class=\"shell\">${page}</section>`,
+      ),
+      port: 0,
+    });
+    servers.push(server);
+
+    const res = await fetch(localTestUrl(server, "/"));
+    const body = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(body).toContain(
+      '<section class="shell"><article>Custom</article></section>',
+    );
+  });
+
+  test("composes page routes and partial routes in one server", async () => {
+    const server = mini({
+      routes: {
+        "/": page(() => "<main>Page</main>", {
+          head: { title: "Page" },
+        }),
+      },
+      partials: {
+        greeting: partial(() => "<p>Hello</p>", { allowNonHtmx: true }),
+      },
+      port: 0,
+    });
+    servers.push(server);
+
+    const pageRes = await fetch(localTestUrl(server, "/"));
+    const pageBody = await pageRes.text();
+
+    const partialRes = await fetch(localTestUrl(server, "/partial/greeting"));
+    const partialBody = await partialRes.text();
+
+    expect(pageRes.status).toBe(200);
+    expect(pageBody).toContain("<main><main>Page</main></main>");
+
+    expect(partialRes.status).toBe(200);
+    expect(partialBody).toBe("<p>Hello</p>");
+  });
+
+  test("injects global styles and scripts into full-page responses", async () => {
+    const server = mini({
+      routes: {
+        "/": page(() => "<main>Assets</main>", {
+          head: { title: "Assets" },
+        }),
+      },
+      globalStyles: () => "body { color: red; }",
+      scripts: () => "window.__miniIntegration=1;",
+      port: 0,
+    });
+    servers.push(server);
+
+    const fullRes = await fetch(localTestUrl(server, "/"));
+    const fullBody = await fullRes.text();
+
+    const htmxRes = await fetch(localTestUrl(server, "/"), {
+      headers: { "HX-Request": "true" },
+    });
+    const htmxBody = await htmxRes.text();
+
+    expect(fullRes.status).toBe(200);
+    expect(fullBody).toContain("<style>body{color:red}</style>");
+    expect(fullBody).toContain("window.__miniIntegration=1");
+
+    expect(htmxRes.status).toBe(200);
+    expect(htmxBody).not.toContain("window.__miniIntegration=1");
+    expect(htmxBody).not.toContain("body{color:red}");
+  });
+});
