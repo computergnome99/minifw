@@ -25,6 +25,7 @@ const handleAfterSwap = (event: Event) => {
 /** Register style promotion for HTMX swaps once the body is available. */
 const registerAfterSwapListener = () => {
   document.body.addEventListener("htmx:afterSwap", handleAfterSwap);
+  document.body.addEventListener("htmx:after:swap", handleAfterSwap);
 };
 
 if (document.readyState === "loading") {

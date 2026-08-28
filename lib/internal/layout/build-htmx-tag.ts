@@ -10,7 +10,7 @@ export async function buildHtmxTag(
 ): Promise<string> {
   if (!htmx)
     return `<script
-      src="https://unpkg.com/htmx.org@latest/dist/htmx.min.js"
+      src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"
       crossorigin="anonymous"
     ></script>`;
   if (htmx.type === "cdn") {

@@ -2,11 +2,11 @@ import { describe, expect, test } from "bun:test";
 import { buildHtmxTag } from "./build-htmx-tag";
 
 describe("layout/buildHtmxTag", () => {
-  test("returns default latest HTMX script when config is omitted", async () => {
+  test("returns the default HTMX 4 script when config is omitted", async () => {
     const output = await buildHtmxTag(undefined);
 
     expect(output).toContain(
-      "https://unpkg.com/htmx.org@latest/dist/htmx.min.js",
+      "https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js",
     );
   });
 

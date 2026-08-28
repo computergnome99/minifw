@@ -1,0 +1,57 @@
+/* eslint-disable unicorn/no-top-level-assignment-in-function */
+import { afterAll, beforeAll, expect, test } from "bun:test";
+
+let server: ReturnType<typeof Bun.spawn> | undefined;
+
+beforeAll(async () => {
+  server = Bun.spawn(["bun", "examples/htmx-1/server.ts"], {
+    stderr: "ignore",
+    stdout: "ignore",
+  });
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    try {
+      await fetch("http://127.0.0.1:3101");
+      return;
+    } catch {
+      await Bun.sleep(100);
+    }
+  }
+
+  throw new Error("HTMX 1 example server did not start");
+});
+
+afterAll(async () => {
+  server?.kill();
+  await server?.exited;
+});
+
+test("HTMX 1 swaps a MiniFW partial", async () => {
+  await using view = new Bun.WebView({
+    backend: { type: "chrome", url: false },
+  });
+  await view.navigate("http://127.0.0.1:3101");
+
+  expect(
+    (await view.evaluate("document.querySelector('h1')?.textContent")) as
+      | string
+      | undefined,
+  ).toBe("HTMX 1 partials");
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-count]')?.textContent",
+    )) as string | undefined,
+  ).toBe("Count: 1");
+
+  await view.click("button");
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const count = await view.evaluate(
+      "document.querySelector('[data-count]')?.textContent",
+    );
+    if (count === "Count: 2") return;
+    await Bun.sleep(100);
+  }
+
+  throw new Error("HTMX did not swap the counter partial");
+});

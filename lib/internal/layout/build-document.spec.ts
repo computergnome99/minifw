@@ -29,6 +29,7 @@ describe("layout/buildDocument", () => {
     expect(output).toContain("<title>Home</title>");
     expect(output).toContain('<meta name="description" content="Desc">');
     expect(output).toContain("<main>Body</main>");
+    expect(output).toContain('hx-boost="true" hx-boost:inherited="true"');
   });
 
   test("injects global styles and scripts", async () => {

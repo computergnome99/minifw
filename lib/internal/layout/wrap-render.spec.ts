@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { MiniHttpError, error } from "../../helpers/error";
 import { wrapRender } from "./wrap-render";
-import type { LayoutRenderArgs as LayoutRenderArguments } from "../../core/layout";
+import type { LayoutRenderArguments } from "../../core/layout";
 import type { MiniContext } from "../../core/shared";
 
 describe("layout/wrapRender", () => {

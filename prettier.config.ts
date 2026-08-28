@@ -6,6 +6,7 @@ const config: Config = {
   singleQuote: false,
   trailingComma: "all",
   printWidth: 80,
+  proseWrap: "always",
   tabWidth: 2,
   endOfLine: "lf",
 };

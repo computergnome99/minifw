@@ -12,7 +12,7 @@ describe("shared types", () => {
       isHtmx: true,
     };
 
-    expect(context.params.id).toBe("42");
+    expect(context.params["id"]).toBe("42");
     expect(context.isHtmx).toBe(true);
   });
 

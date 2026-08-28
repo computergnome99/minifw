@@ -1,7 +1,6 @@
 {
   "name": "minifw",
   "version": "0.0.1",
-  "module": "index.ts",
   "type": "module",
   "description": "A simple, server-side framework for building hypermedia apps quickly with HTMX.",
   "license": "MIT",
@@ -19,18 +18,26 @@
     "framework"
   ],
   "files": [
-    "dist",
+    "lib",
+    "!lib/**/*.spec.ts",
+    "!lib/**/__fixtures__/**",
     "README.md",
     "LICENSE"
   ],
+  "exports": {
+    "./core": "./lib/core/index.ts",
+    "./helpers": "./lib/helpers/index.ts"
+  },
   "scripts": {
-    "clean": "rm -rf ./dist",
-    "build": "bun run clean && bun build ./lib/core/index.ts ./lib/helpers/index.ts --outdir ./dist --target bun && tsc --project tsconfig.build.json",
-    "test": "bun test",
+    "test:unit": "bun test ./lib",
     "test:types": "tsc --noEmit",
+    "test:e2e": "bun test ./examples/htmx-1/app.e2e.ts ./examples/htmx-2/app.e2e.ts ./examples/htmx-4/app.e2e.ts",
+    "test:all": "bun run test:unit && bun run test:types && bun run test:e2e",
     "lint": "eslint --cache lib eslint.config.ts prettier.config.ts ; prettier --check .",
     "lint:fix": "eslint --cache lib eslint.config.ts prettier.config.ts --fix ; prettier --write .",
-    "prepack": "bun run build"
+    "run:htmx-1": "bun examples/htmx-1/server.ts",
+    "run:htmx-2": "bun examples/htmx-2/server.ts",
+    "run:htmx-4": "bun examples/htmx-4/server.ts"
   },
   "dependencies": {
     "html-minifier-terser": "^7.2",
@@ -45,6 +52,9 @@
     "eslint-plugin-jsdoc": "^64.2.1",
     "eslint-plugin-prettier": "^5.5",
     "eslint-plugin-unicorn": "^73.0.0",
+    "htmx-1": "npm:htmx.org@1.9.12",
+    "htmx-2": "npm:htmx.org@2.0.4",
+    "htmx-4": "npm:htmx.org@4.0.0",
     "jiti": "^2.7.0",
     "prettier": "^3",
     "prettier-plugin-jsdoc": "^1.8",

@@ -72,7 +72,7 @@ export async function buildDocument(
         ${headTags.map((t) => `\t${t}`).join("\n")}
       </head>
 
-      <body${bodyAttributes} hx-boost="true">
+      <body${bodyAttributes} hx-boost="true" hx-boost:inherited="true">
         ${extracted.content}
       </body>
     </html>
