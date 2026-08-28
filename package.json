@@ -28,10 +28,8 @@
     "build": "bun run clean && bun build ./lib/core/index.ts ./lib/helpers/index.ts --outdir ./dist --target bun && tsc --project tsconfig.build.json",
     "test": "bun test",
     "test:types": "tsc --noEmit",
-    "lint": "eslint --cache lib eslint.config.ts prettier.config.ts",
-    "lint:fix": "bun run lint -- --fix",
-    "format": "bun run lint && prettier --check .",
-    "format:write": "bun run lint:fix && prettier --write .",
+    "lint": "eslint --cache lib eslint.config.ts prettier.config.ts ; prettier --check .",
+    "lint:fix": "eslint --cache lib eslint.config.ts prettier.config.ts --fix ; prettier --write .",
     "prepack": "bun run build"
   },
   "dependencies": {

@@ -1,9 +1,6 @@
 import type { MaybePromise } from "bun";
 import { error, isMiniHttpError } from "../../helpers/error";
-import type {
-  LayoutOptions,
-  LayoutRenderArgs as LayoutRenderArguments,
-} from "../../core/layout";
+import type { LayoutOptions, LayoutRenderArguments } from "../../core/layout";
 import { buildDocument } from "./build-document";
 
 /**

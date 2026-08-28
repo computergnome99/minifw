@@ -1,8 +1,5 @@
 import type { MaybePromise } from "bun";
-import type {
-  LayoutOptions,
-  LayoutRenderArgs as LayoutRenderArguments,
-} from "../../core/layout";
+import type { LayoutOptions, LayoutRenderArguments } from "../../core/layout";
 import { runtime } from "../../runtime/runtime";
 import { html } from "../../helpers";
 import { buildBodyAttributes } from "./build-body-attributes";

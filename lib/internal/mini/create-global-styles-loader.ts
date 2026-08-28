@@ -14,7 +14,9 @@ export function createGlobalStylesLoader(
   const entries = normalizeGlobalStyles(styles);
 
   if (entries.length === 0) {
-    return async () => {};
+    return async (): Promise<string | undefined> => {
+      return;
+    };
   }
 
   let memoized: Promise<string | undefined> | undefined;
