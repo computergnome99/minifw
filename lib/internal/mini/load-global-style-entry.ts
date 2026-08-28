@@ -1,6 +1,10 @@
 import type { MiniGlobalStyleEntry } from "./types";
 
-/** Resolve one global style entry to raw CSS text. */
+/**
+ * Resolve one global style entry to raw CSS text.
+ *
+ * @param entry
+ */
 export async function loadGlobalStyleEntry(
   entry: MiniGlobalStyleEntry,
 ): Promise<string> {

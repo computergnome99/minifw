@@ -1,6 +1,8 @@
 /**
  * After an HTMX swap, move scoped style tags into `<head>` with dedupe by
  * `fwid`.
+ *
+ * @param event
  */
 const handleAfterSwap = (event: Event) => {
   const target = event.target as HTMLElement | null;
@@ -8,12 +10,12 @@ const handleAfterSwap = (event: Event) => {
 
   const styles = target.querySelectorAll("style[fwid]");
 
-  for (const style of Array.from(styles)) {
+  for (const style of styles) {
     const id = style.getAttribute("fwid");
     if (!id) continue;
 
-    if (!document.head.querySelector(`style[fwid="${id}"]`)) {
-      document.head.appendChild(style.cloneNode(true) as HTMLStyleElement);
+    if (!document.head.querySelector(`style[fwid="${CSS.escape(id)}"]`)) {
+      document.head.append(style.cloneNode(true) as HTMLStyleElement);
     }
 
     style.remove();

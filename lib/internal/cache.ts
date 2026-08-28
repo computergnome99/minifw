@@ -13,6 +13,8 @@ const renderCache = new Map<string, CacheEntry>();
  * Convert user-facing cache options into a concrete TTL value.
  *
  * `true` means cache indefinitely, so this returns `undefined`.
+ *
+ * @param cache
  */
 export function normalizeCacheTtl(
   cache: MiniCacheOptions | undefined,
@@ -22,12 +24,16 @@ export function normalizeCacheTtl(
   return cache.ttl;
 }
 
-/** Read a cached value and evict it if it has expired. */
+/**
+ * Read a cached value and evict it if it has expired.
+ *
+ * @param cacheKey
+ */
 export function getCached(cacheKey: string): string | undefined {
   const entry = renderCache.get(cacheKey);
   if (!entry) return undefined;
 
-  if (entry.expiresAt != null && Date.now() > entry.expiresAt) {
+  if (entry.expiresAt != undefined && Date.now() > entry.expiresAt) {
     renderCache.delete(cacheKey);
     return undefined;
   }
@@ -35,38 +41,60 @@ export function getCached(cacheKey: string): string | undefined {
   return entry.value;
 }
 
-/** Store a value in the render cache with an optional TTL. */
+/**
+ * Store a value in the render cache with an optional TTL.
+ *
+ * @param cacheKey
+ * @param value
+ * @param ttl
+ */
 export function setCached(cacheKey: string, value: string, ttl?: number): void {
-  const expiresAt = ttl != null ? Date.now() + ttl : undefined;
+  const expiresAt = ttl == undefined ? undefined : Date.now() + ttl;
   renderCache.set(cacheKey, { value, expiresAt });
 }
 
-/** Produce a stable string representation of params for cache keys. */
-export function stableParams(params: Record<string, string>): string {
-  const entries = Object.entries(params).sort(([a], [b]) => a.localeCompare(b));
+/**
+ * Produce a stable string representation of params for cache keys.
+ *
+ * @param parameters
+ */
+export function stableParameters(parameters: Record<string, string>): string {
+  const entries = Object.entries(parameters).toSorted(([a], [b]) =>
+    a.localeCompare(b),
+  );
   return JSON.stringify(entries);
 }
 
-/** Build a deterministic cache key for page responses. */
-export function pageCacheKey(path: string, ctx: MiniContext): string {
+/**
+ * Build a deterministic cache key for page responses.
+ *
+ * @param path
+ * @param context
+ */
+export function pageCacheKey(path: string, context: MiniContext): string {
   return [
     "page",
     path,
-    ctx.url.pathname,
-    ctx.url.search,
-    String(ctx.isHtmx),
-    stableParams(ctx.params),
+    context.url.pathname,
+    context.url.search,
+    String(context.isHtmx),
+    stableParameters(context.params),
   ].join("|");
 }
 
-/** Build a deterministic cache key for partial responses. */
-export function partialCacheKey(name: string, ctx: MiniContext): string {
+/**
+ * Build a deterministic cache key for partial responses.
+ *
+ * @param name
+ * @param context
+ */
+export function partialCacheKey(name: string, context: MiniContext): string {
   return [
     "partial",
     name,
-    ctx.url.pathname,
-    ctx.url.search,
-    String(ctx.isHtmx),
-    stableParams(ctx.params),
+    context.url.pathname,
+    context.url.search,
+    String(context.isHtmx),
+    stableParameters(context.params),
   ].join("|");
 }

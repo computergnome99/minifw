@@ -1,6 +1,10 @@
 import type { MiniHead } from "../../core/shared";
 
-/** Render a minimal head fragment for HTMX responses. */
+/**
+ * Render a minimal head fragment for HTMX responses.
+ *
+ * @param head
+ */
 export function renderHtmxHead(head?: MiniHead): string {
   const tags: string[] = [];
 

@@ -10,19 +10,16 @@ describe("layout", () => {
     isHtmx: false,
   };
 
-  const baseArgs = { context, page: "<main>Body</main>" };
+  const baseArguments = { context, page: "<main>Body</main>" };
 
   test("generates a full HTML document with body content", async () => {
-    // Arrange
     const wrapped = layout(({ page }) => page);
 
-    // Act
     const output = await wrapped.render({
-      ...baseArgs,
+      ...baseArguments,
       head: { title: "Home" },
     });
 
-    // Assert
     expect(output).toContain("<!DOCTYPE html>");
     expect(output).toContain("<html>");
     expect(output).toContain("<head>");
@@ -32,12 +29,10 @@ describe("layout", () => {
   });
 
   test("includes charset and MiniHead tags in <head>", async () => {
-    // Arrange
     const wrapped = layout(({ page }) => page);
 
-    // Act
     const output = await wrapped.render({
-      ...baseArgs,
+      ...baseArguments,
       head: {
         title: "My Page",
         description: "A description",
@@ -46,7 +41,6 @@ describe("layout", () => {
       },
     });
 
-    // Assert
     expect(output).toContain('<meta charset="utf-8">');
     expect(output).toContain("<title>My Page</title>");
     expect(output).toContain(
@@ -59,27 +53,21 @@ describe("layout", () => {
   });
 
   test("renders empty <title> when no head is provided", async () => {
-    // Arrange
     const wrapped = layout(({ page }) => page);
 
-    // Act
-    const output = await wrapped.render(baseArgs);
+    const output = await wrapped.render(baseArguments);
 
-    // Assert
     expect(output).toContain("<title></title>");
   });
 
   test("appends extra head content from head function", async () => {
-    // Arrange
     const wrapped = layout(
       ({ page }) => page,
       () => '<link rel="stylesheet" href="/app.css">',
     );
 
-    // Act
-    const output = await wrapped.render(baseArgs);
+    const output = await wrapped.render(baseArguments);
 
-    // Assert
     expect(output).toContain('<link rel="stylesheet" href="/app.css">');
     expect(output.indexOf("<head>")).toBeLessThan(
       output.indexOf('<link rel="stylesheet"'),
@@ -89,10 +77,10 @@ describe("layout", () => {
   test("includes configured body attributes and htmx script", async () => {
     const wrapped = layout(({ page }) => page, {
       htmx: { type: "cdn", version: "2.0.4" },
-      bodyArgs: { class: "dark", "data-boost": null },
+      bodyArguments: { class: "dark", "data-boost": undefined },
     });
 
-    const output = await wrapped.render(baseArgs);
+    const output = await wrapped.render(baseArguments);
 
     expect(output).toContain('class="dark"');
     expect(output).toContain("data-boost");

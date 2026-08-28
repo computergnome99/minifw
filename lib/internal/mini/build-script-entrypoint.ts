@@ -1,4 +1,8 @@
-/** Bundle and minify a script entrypoint using Bun.build. */
+/**
+ * Bundle and minify a script entrypoint using Bun.build.
+ *
+ * @param entrypoint
+ */
 export async function buildScriptEntrypoint(
   entrypoint: string,
 ): Promise<string> {

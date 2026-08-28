@@ -7,8 +7,8 @@ import type { MiniPage } from "./page";
  * have server context and cannot be served. To serve a fragment, wrap it in
  * {@link MiniPartial} or {@link MiniPage}.
  */
-export type MiniFragment<Props extends object | undefined = undefined> = (
-  props?: Props,
+export type MiniFragment<Properties extends object | undefined = undefined> = (
+  ...arguments_: Properties extends object ? [Properties] : []
 ) => MaybePromise<string>;
 
 /**
@@ -28,8 +28,14 @@ export type MiniFragment<Props extends object | undefined = undefined> = (
  * @param render The render function for the fragment.
  * @returns A new {@link MiniFragment} instance.
  */
-export function fragment<Props extends object | undefined>(
-  render: (props?: Props) => MaybePromise<string>,
-): MiniFragment<Props> {
-  return render;
+export function fragment<Properties extends object>(
+  render: (properties: Properties) => MaybePromise<string>,
+): MiniFragment<Properties>;
+export function fragment(render: () => MaybePromise<string>): MiniFragment;
+export function fragment<Properties extends object>(
+  render:
+    | ((properties: Properties) => MaybePromise<string>)
+    | (() => MaybePromise<string>),
+): MiniFragment<Properties> {
+  return render as MiniFragment<Properties>;
 }

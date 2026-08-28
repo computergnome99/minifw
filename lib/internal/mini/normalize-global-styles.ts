@@ -1,10 +1,14 @@
 import type { MiniGlobalStyleEntry, MiniGlobalStyles } from "./types";
 
-/** Normalize global style configuration to an array form. */
+/**
+ * Normalize global style configuration to an array form.
+ *
+ * @param styles
+ */
 export function normalizeGlobalStyles(
   styles: MiniGlobalStyles | undefined,
 ): MiniGlobalStyleEntry[] {
-  if (styles == null) {
+  if (styles == undefined) {
     return [];
   }
 

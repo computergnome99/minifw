@@ -6,6 +6,8 @@ const styleTagPattern = /<style(\s[^>]*)?>([\s\S]*?)<\/style>/gi;
 /**
  * Minify a CSS string using Lightning CSS. Falls back to the original string if
  * parsing fails.
+ *
+ * @param input
  */
 export function minifyCss(input: string): string {
   if (input.trim() === "") {
@@ -25,9 +27,13 @@ export function minifyCss(input: string): string {
   }
 }
 
-/** Minify all inline `<style>` blocks in an HTML string. */
+/**
+ * Minify all inline `<style>` blocks in an HTML string.
+ *
+ * @param input
+ */
 function minifyInlineStyles(input: string): string {
-  return input.replace(styleTagPattern, (_match, attributes, styleBody) => {
+  return input.replaceAll(styleTagPattern, (_match, attributes, styleBody) => {
     const minifiedCss = minifyCss(styleBody ?? "");
     const styleAttributes = attributes ?? "";
 
@@ -35,7 +41,11 @@ function minifyInlineStyles(input: string): string {
   });
 }
 
-/** Minify an HTML string and minify inline style blocks with Lightning CSS. */
+/**
+ * Minify an HTML string and minify inline style blocks with Lightning CSS.
+ *
+ * @param input
+ */
 export async function minifyHtml(input: string): Promise<string> {
   const withMinifiedStyles = minifyInlineStyles(input);
 

@@ -23,7 +23,7 @@ export type MiniHtmxConfig =
     };
 
 /** Arguments received by layout body and head render functions. */
-export type LayoutRenderArgs = {
+export type LayoutRenderArguments = {
   context: MiniContext;
   /** The pre-rendered page HTML, to be placed inside `<body>`. */
   page: string;
@@ -35,8 +35,12 @@ export type LayoutRenderArgs = {
   globalScripts?: string;
 };
 
-type BodyRenderFn = (args: LayoutRenderArgs) => MaybePromise<string>;
-type HeadRenderFn = (args: LayoutRenderArgs) => MaybePromise<string>;
+type BodyRenderFunction = (
+  arguments_: LayoutRenderArguments,
+) => MaybePromise<string>;
+type HeadRenderFunction = (
+  arguments_: LayoutRenderArguments,
+) => MaybePromise<string>;
 
 /** Options for {@link layout}. */
 export type LayoutOptions = {
@@ -46,11 +50,11 @@ export type LayoutOptions = {
    */
   htmx?: MiniHtmxConfig;
   /**
-   * Attributes applied to the generated `<body>` element. A `null` value
-   * renders the attribute as boolean (no value), e.g. `{ "data-boost": null }`
-   * → `<body data-boost>`.
+   * Attributes applied to the generated `<body>` element. A `undefined` value
+   * renders the attribute as boolean (no value), e.g. `{ "data-boost":
+   * undefined }` → `<body data-boost>`.
    */
-  bodyArgs?: Record<string, string | null>;
+  bodyArguments?: Record<string, string | undefined>;
 
   disableRuntime?: boolean;
 };
@@ -63,9 +67,18 @@ export type LayoutOptions = {
  * generic and not contain page-specific content.
  */
 export interface MiniLayout {
-  render(args: LayoutRenderArgs): MaybePromise<string>;
+  render(arguments_: LayoutRenderArguments): MaybePromise<string>;
 }
 
+export function layout(
+  body: BodyRenderFunction,
+  options?: LayoutOptions,
+): MiniLayout;
+export function layout(
+  body: BodyRenderFunction,
+  head: HeadRenderFunction,
+  options?: LayoutOptions,
+): MiniLayout;
 /**
  * Create a new {@link MiniLayout} instance.
  *
@@ -84,7 +97,7 @@ export interface MiniLayout {
  *     () => html`<link rel="stylesheet" href="/app.css" />`,
  *     {
  *       htmx: { type: "cdn", version: "2.0.4" },
- *       bodyArgs: { class: "dark", "data-boost": null },
+ *       bodyArguments: { class: "dark", "data-boost": undefined },
  *     },
  *   );
  *
@@ -96,19 +109,14 @@ export interface MiniLayout {
  *   provided.
  * @returns A new {@link MiniLayout} instance.
  */
-export function layout(body: BodyRenderFn, options?: LayoutOptions): MiniLayout;
 export function layout(
-  body: BodyRenderFn,
-  head: HeadRenderFn,
-  options?: LayoutOptions,
-): MiniLayout;
-export function layout(
-  body: BodyRenderFn,
-  headOrOptions?: HeadRenderFn | LayoutOptions,
+  body: BodyRenderFunction,
+  headOrOptions?: HeadRenderFunction | LayoutOptions,
   options?: LayoutOptions,
 ): MiniLayout {
-  const headFn =
+  const headFunction =
     typeof headOrOptions === "function" ? headOrOptions : undefined;
-  const opts = typeof headOrOptions === "function" ? options : headOrOptions;
-  return { render: wrapRender(body, headFn, opts) };
+  const options_ =
+    typeof headOrOptions === "function" ? options : headOrOptions;
+  return { render: wrapRender(body, headFunction, options_) };
 }

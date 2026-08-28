@@ -11,15 +11,15 @@ import type { MiniCacheOptions, MiniContext, MiniHead } from "./shared";
  * context and can optionally define {@link MiniHead} metadata.
  */
 export interface MiniPage {
-  render(ctx: MiniContext): MaybePromise<string>;
+  render(context: MiniContext): MaybePromise<string>;
   style?(): MaybePromise<string>;
 
   head?: MiniHead;
   cache?: MiniCacheOptions;
 }
 
-type PageRenderFn = (ctx: MiniContext) => MaybePromise<string>;
-type PageStyleFn = () => MaybePromise<string>;
+type PageRenderFunction = (context: MiniContext) => MaybePromise<string>;
+type PageStyleFunction = () => MaybePromise<string>;
 
 type PageOptions = {
   head?: MiniHead;
@@ -41,51 +41,59 @@ type PageOptions = {
  * @param options Page options, including optional {@link MiniHead} metadata.
  * @returns A new {@link MiniPage} instance.
  */
-export function page(render: PageRenderFn, options?: PageOptions): MiniPage;
 export function page(
-  render: PageRenderFn,
-  style: PageStyleFn,
+  render: PageRenderFunction,
   options?: PageOptions,
 ): MiniPage;
 export function page(
-  render: PageRenderFn,
-  styleOrOptions?: PageStyleFn | PageOptions,
+  render: PageRenderFunction,
+  style: PageStyleFunction,
+  options?: PageOptions,
+): MiniPage;
+export function page(
+  render: PageRenderFunction,
+  styleOrOptions?: PageStyleFunction | PageOptions,
   options?: PageOptions,
 ): MiniPage {
-  const styleFn =
+  const styleFunction =
     typeof styleOrOptions === "function" ? styleOrOptions : undefined;
-  const opts = typeof styleOrOptions === "function" ? options : styleOrOptions;
+  const options_ =
+    typeof styleOrOptions === "function" ? options : styleOrOptions;
 
-  validateCacheOptions(opts?.cache);
+  validateCacheOptions(options_?.cache);
 
-  /** Unified page render pipeline with style encapsulation and error mapping. */
-  const wrappedRender = async (ctx: MiniContext): Promise<string> => {
+  /**
+   * Unified page render pipeline with style encapsulation and error mapping.
+   *
+   * @param context
+   */
+  const wrappedRender = async (context: MiniContext): Promise<string> => {
     try {
-      const renderedPage = await render(ctx);
+      const renderedPage = await render(context);
       const rawStyle = wrappedStyle ? await wrappedStyle() : undefined;
 
       const encapsulated =
-        rawStyle && ctx.route
-          ? encapsulateStyles(renderedPage, rawStyle, ctx.route)
+        rawStyle && context.route
+          ? encapsulateStyles(renderedPage, rawStyle, context.route)
           : undefined;
       const markup = encapsulated?.markup ?? renderedPage;
       const style = encapsulated?.css ?? rawStyle;
 
-      const body = inlineStyle(markup, style, ctx.route);
+      const body = inlineStyle(markup, style, context.route);
 
-      if (!ctx.isHtmx) {
+      if (!context.isHtmx) {
         return body;
       }
 
-      const head = renderHtmxHead(opts?.head);
+      const head = renderHtmxHead(options_?.head);
       return head ? `${head}\n${body}` : body;
-    } catch (caught) {
-      if (isMiniHttpError(caught)) {
-        throw caught;
+    } catch (error_) {
+      if (isMiniHttpError(error_)) {
+        throw error_;
       }
 
-      if (caught instanceof Error) {
-        error(500, caught.message);
+      if (error_ instanceof Error) {
+        error(500, error_.message);
       }
 
       error(500, "Internal Server Error");
@@ -93,17 +101,17 @@ export function page(
   };
 
   /** Wrap style resolution so style function failures map to Mini HTTP errors. */
-  const wrappedStyle = styleFn
+  const wrappedStyle = styleFunction
     ? async (): Promise<string> => {
         try {
-          return await styleFn();
-        } catch (caught) {
-          if (isMiniHttpError(caught)) {
-            throw caught;
+          return await styleFunction();
+        } catch (error_) {
+          if (isMiniHttpError(error_)) {
+            throw error_;
           }
 
-          if (caught instanceof Error) {
-            error(500, caught.message);
+          if (error_ instanceof Error) {
+            error(500, error_.message);
           }
 
           error(500, "Internal Server Error");
@@ -114,7 +122,7 @@ export function page(
   return {
     render: wrappedRender,
     style: wrappedStyle,
-    head: opts?.head,
-    cache: opts?.cache,
+    head: options_?.head,
+    cache: options_?.cache,
   };
 }

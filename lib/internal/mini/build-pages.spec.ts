@@ -14,10 +14,10 @@ describe("buildPages", () => {
       layout(({ page }) => page),
     );
 
-    const res = await handlers["/"]!(new Request("http://localhost/"));
-    const body = await res.text();
+    const response = await handlers["/"]!(new Request("http://localhost/"));
+    const body = await response.text();
 
-    expect(res.status).toBe(200);
+    expect(response.status).toBe(200);
     expect(body).toContain("<html>");
     expect(body).toContain("<main>Hello</main>");
   });
@@ -31,14 +31,14 @@ describe("buildPages", () => {
       layout(({ page }) => page),
     );
 
-    const res = await handlers["/"]!(
+    const response = await handlers["/"]!(
       new Request("http://localhost/", {
         headers: { "HX-Request": "true" },
       }),
     );
-    const body = await res.text();
+    const body = await response.text();
 
-    expect(res.status).toBe(200);
+    expect(response.status).toBe(200);
     expect(body).not.toContain("<html>");
     expect(body).toContain("<main>Hello</main>");
   });
@@ -78,9 +78,9 @@ describe("buildPages", () => {
       layout(({ page }) => page),
     );
 
-    const res = await handlers["/"]!(new Request("http://localhost/"));
+    const response = await handlers["/"]!(new Request("http://localhost/"));
 
-    expect(res.status).toBe(418);
-    expect(await res.text()).toBe("teapot");
+    expect(response.status).toBe(418);
+    expect(await response.text()).toBe("teapot");
   });
 });

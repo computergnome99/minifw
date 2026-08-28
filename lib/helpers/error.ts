@@ -9,9 +9,13 @@ export class MiniHttpError extends Error {
   }
 }
 
-/** Validate that a status code is in the HTTP client/server error range. */
+/**
+ * Validate that a status code is in the HTTP client/server error range.
+ *
+ * @param status
+ */
 function isHttpErrorCode(status: number): boolean {
-  return Number.isInteger(status) && status >= 400 && status <= 599;
+  return Number.isSafeInteger(status) && status >= 400 && status <= 599;
 }
 
 /**

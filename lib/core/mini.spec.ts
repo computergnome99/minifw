@@ -6,6 +6,10 @@ import { partial } from "./partial";
 
 const servers: Bun.Server<undefined>[] = [];
 
+/**
+ * @param server
+ * @param path
+ */
 function localTestUrl(server: Bun.Server<undefined>, path: string): string {
   const hostname = server.hostname ?? "127.0.0.1";
 
@@ -13,7 +17,7 @@ function localTestUrl(server: Bun.Server<undefined>, path: string): string {
     throw new Error(`Unexpected non-local hostname in test: ${hostname}`);
   }
 
-  if (server.port == null) {
+  if (server.port == undefined) {
     throw new Error("Server did not expose a TCP port for test requests");
   }
 
@@ -41,10 +45,10 @@ describe("mini integration", () => {
     });
     servers.push(server);
 
-    const res = await fetch(localTestUrl(server, "/"));
-    const body = await res.text();
+    const response = await fetch(localTestUrl(server, "/"));
+    const body = await response.text();
 
-    expect(res.status).toBe(200);
+    expect(response.status).toBe(200);
     expect(body).toContain("<html>");
     expect(body).toContain("<body");
     expect(body).toContain("<main><main>Home</main></main>");
@@ -64,10 +68,10 @@ describe("mini integration", () => {
     });
     servers.push(server);
 
-    const res = await fetch(localTestUrl(server, "/"));
-    const body = await res.text();
+    const response = await fetch(localTestUrl(server, "/"));
+    const body = await response.text();
 
-    expect(res.status).toBe(200);
+    expect(response.status).toBe(200);
     expect(body).toContain(
       '<section class="shell"><article>Custom</article></section>',
     );
@@ -87,16 +91,18 @@ describe("mini integration", () => {
     });
     servers.push(server);
 
-    const pageRes = await fetch(localTestUrl(server, "/"));
-    const pageBody = await pageRes.text();
+    const pageResponse = await fetch(localTestUrl(server, "/"));
+    const pageBody = await pageResponse.text();
 
-    const partialRes = await fetch(localTestUrl(server, "/partial/greeting"));
-    const partialBody = await partialRes.text();
+    const partialResponse = await fetch(
+      localTestUrl(server, "/partial/greeting"),
+    );
+    const partialBody = await partialResponse.text();
 
-    expect(pageRes.status).toBe(200);
+    expect(pageResponse.status).toBe(200);
     expect(pageBody).toContain("<main><main>Page</main></main>");
 
-    expect(partialRes.status).toBe(200);
+    expect(partialResponse.status).toBe(200);
     expect(partialBody).toBe("<p>Hello</p>");
   });
 
@@ -113,19 +119,19 @@ describe("mini integration", () => {
     });
     servers.push(server);
 
-    const fullRes = await fetch(localTestUrl(server, "/"));
-    const fullBody = await fullRes.text();
+    const fullResponse = await fetch(localTestUrl(server, "/"));
+    const fullBody = await fullResponse.text();
 
-    const htmxRes = await fetch(localTestUrl(server, "/"), {
+    const htmxResponse = await fetch(localTestUrl(server, "/"), {
       headers: { "HX-Request": "true" },
     });
-    const htmxBody = await htmxRes.text();
+    const htmxBody = await htmxResponse.text();
 
-    expect(fullRes.status).toBe(200);
+    expect(fullResponse.status).toBe(200);
     expect(fullBody).toContain("<style>body{color:red}</style>");
     expect(fullBody).toContain("window.__miniIntegration=1");
 
-    expect(htmxRes.status).toBe(200);
+    expect(htmxResponse.status).toBe(200);
     expect(htmxBody).not.toContain("window.__miniIntegration=1");
     expect(htmxBody).not.toContain("body{color:red}");
   });

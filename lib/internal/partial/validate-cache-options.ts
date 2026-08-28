@@ -1,6 +1,10 @@
 import type { MiniCacheOptions } from "../../core/shared";
 
-/** Validate partial cache options and reject invalid TTL values. */
+/**
+ * Validate partial cache options and reject invalid TTL values.
+ *
+ * @param cache
+ */
 export function validateCacheOptions(
   cache: MiniCacheOptions | undefined,
 ): void {

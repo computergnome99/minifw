@@ -1,27 +1,40 @@
 import type { MaybePromise } from "bun";
-import type { LayoutOptions, LayoutRenderArgs } from "../../core/layout";
+import type {
+  LayoutOptions,
+  LayoutRenderArgs as LayoutRenderArguments,
+} from "../../core/layout";
 import { runtime } from "../../runtime/runtime";
 import { html } from "../../helpers";
-import { buildBodyAttrs } from "./build-body-attrs";
+import { buildBodyAttrs as buildBodyAttributes } from "./build-body-attributes";
 import { buildHtmxTag } from "./build-htmx-tag";
 import { extractBodyStyles } from "./extract-body-styles";
 
-/** Build a complete HTML document string from layout inputs. */
+/**
+ * Build a complete HTML document string from layout inputs.
+ *
+ * @param arguments_
+ * @param bodyFunction
+ * @param headFunction
+ * @param options
+ */
 export async function buildDocument(
-  args: LayoutRenderArgs,
-  bodyFn: (args: LayoutRenderArgs) => MaybePromise<string>,
-  headFn: ((args: LayoutRenderArgs) => MaybePromise<string>) | undefined,
+  arguments_: LayoutRenderArguments,
+  bodyFunction: (arguments__: LayoutRenderArguments) => MaybePromise<string>,
+  headFunction:
+    | ((arguments__: LayoutRenderArguments) => MaybePromise<string>)
+    | undefined,
   options: LayoutOptions | undefined,
 ): Promise<string> {
-  const { head, globalStylesCss, globalScripts } = args;
+  const { head, globalStylesCss, globalScripts } = arguments_;
 
-  const bodyContent = await bodyFn(args);
-  const extraHead = headFn ? await headFn(args) : "";
+  const bodyContent = await bodyFunction(arguments_);
+  const extraHead = headFunction ? await headFunction(arguments_) : "";
   const extracted = extractBodyStyles(bodyContent);
 
-  const headTags: string[] = ['<meta charset="utf-8">'];
-
-  headTags.push(`<title>${head?.title ?? ""}</title>`);
+  const headTags: string[] = [
+    '<meta charset="utf-8">',
+    `<title>${head?.title ?? ""}</title>`,
+  ];
 
   if (head?.description) {
     headTags.push(`<meta name="description" content="${head.description}">`);
@@ -53,7 +66,7 @@ export async function buildDocument(
   if (htmxTag) headTags.push(htmxTag);
   if (extraHead) headTags.push(extraHead);
 
-  const bodyAttrs = buildBodyAttrs(options?.bodyArgs);
+  const bodyAttributes = buildBodyAttributes(options?.bodyArgs);
 
   return html`
     <!DOCTYPE html>
@@ -62,7 +75,7 @@ export async function buildDocument(
         ${headTags.map((t) => `\t${t}`).join("\n")}
       </head>
 
-      <body${bodyAttrs} hx-boost="true">
+      <body${bodyAttributes} hx-boost="true">
         ${extracted.content}
       </body>
     </html>

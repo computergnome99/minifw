@@ -2,7 +2,11 @@ import { parseHTML } from "linkedom";
 import { html } from "../../helpers";
 import { STYLE_ID_ATTR } from "../encapsulate-styles";
 
-/** Extract route-scoped style tags from body content and return deduped tags. */
+/**
+ * Extract route-scoped style tags from body content and return deduped tags.
+ *
+ * @param content
+ */
 export function extractBodyStyles(content: string): {
   content: string;
   styles: string[];
@@ -16,18 +20,20 @@ export function extractBodyStyles(content: string): {
         </body>
       </html>`,
   );
-  const root = document.getElementById("__minifw_style_extract_root__");
+  const root = document.querySelector("#__minifw_style_extract_root__");
 
   if (!root) {
     return { content, styles: [] };
   }
 
-  const styleNodes = root.querySelectorAll(`style[${STYLE_ID_ATTR}]`);
+  const styleNodes = root.querySelectorAll(
+    `style[${CSS.escape(STYLE_ID_ATTR)}]`,
+  );
 
   const seen = new Set<string>();
   const styles: string[] = [];
 
-  for (const styleNode of Array.from(styleNodes)) {
+  for (const styleNode of styleNodes) {
     const styleId = styleNode.getAttribute(STYLE_ID_ATTR);
     if (!styleId) {
       styleNode.remove();
@@ -43,7 +49,7 @@ export function extractBodyStyles(content: string): {
   }
 
   return {
-    content: root.innerHTML,
+    content: root.getHTML(),
     styles,
   };
 }

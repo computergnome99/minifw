@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { MiniHttpError, error } from "../../helpers/error";
 import { wrapRender } from "./wrap-render";
-import type { LayoutRenderArgs } from "../../core/layout";
+import type { LayoutRenderArgs as LayoutRenderArguments } from "../../core/layout";
 import type { MiniContext } from "../../core/shared";
 
 describe("layout/wrapRender", () => {
@@ -12,14 +12,17 @@ describe("layout/wrapRender", () => {
     isHtmx: false,
   };
 
-  const args: LayoutRenderArgs = { context, page: "<main>Body</main>" };
+  const arguments_: LayoutRenderArguments = {
+    context,
+    page: "<main>Body</main>",
+  };
 
   test("returns built document when no error occurs", async () => {
     const render = wrapRender(({ page }) => page, undefined, {
       disableRuntime: true,
     });
 
-    const output = await render(args);
+    const output = await render(arguments_);
 
     expect(output).toContain("<main>Body</main>");
   });
@@ -33,7 +36,7 @@ describe("layout/wrapRender", () => {
       undefined,
     );
 
-    await expect(() => render(args)).toThrow(MiniHttpError);
+    await expect(() => render(arguments_)).toThrow(MiniHttpError);
   });
 
   test("converts unknown errors to HTTP 500 MiniHttpError", async () => {
@@ -45,6 +48,6 @@ describe("layout/wrapRender", () => {
       undefined,
     );
 
-    await expect(() => render(args)).toThrow(MiniHttpError);
+    await expect(() => render(arguments_)).toThrow(MiniHttpError);
   });
 });

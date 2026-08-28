@@ -13,5 +13,5 @@ export const each = <T>(
   basis: T[],
   callback: (item: T, index: number) => string,
 ): string => {
-  return basis.map(callback).join("");
+  return basis.map((item, index) => callback(item, index)).join("");
 };

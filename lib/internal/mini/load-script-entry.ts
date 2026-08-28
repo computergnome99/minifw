@@ -1,10 +1,14 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import path from "node:path";
 import { buildScriptEntrypoint } from "./build-script-entrypoint";
 import type { MiniScriptEntry } from "./types";
 
-/** Resolve one global script entry to bundled JavaScript source. */
+/**
+ * Resolve one global script entry to bundled JavaScript source.
+ *
+ * @param entry
+ */
 export async function loadScriptEntry(entry: MiniScriptEntry): Promise<string> {
   if (typeof entry !== "function") {
     const filename = entry.name;
@@ -15,18 +19,21 @@ export async function loadScriptEntry(entry: MiniScriptEntry): Promise<string> {
     return await buildScriptEntrypoint(filename);
   }
 
-  const source = (await entry()).trim();
+  const resolvedEntry = await entry();
+  const source = resolvedEntry.trim();
   if (source.length === 0) {
     return "";
   }
 
-  const tempDir = await mkdtemp(join(tmpdir(), "minifw-script-"));
-  const tempEntrypoint = join(tempDir, "entry.ts");
+  const temporaryDirectory = await mkdtemp(
+    path.join(tmpdir(), "minifw-script-"),
+  );
+  const temporaryEntrypoint = path.join(temporaryDirectory, "entry.ts");
 
   try {
-    await Bun.write(tempEntrypoint, source);
-    return await buildScriptEntrypoint(tempEntrypoint);
+    await Bun.write(temporaryEntrypoint, source);
+    return await buildScriptEntrypoint(temporaryEntrypoint);
   } finally {
-    await rm(tempDir, { recursive: true, force: true });
+    await rm(temporaryDirectory, { recursive: true, force: true });
   }
 }

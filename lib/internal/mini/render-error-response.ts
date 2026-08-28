@@ -1,6 +1,10 @@
 import { isMiniHttpError } from "../../helpers/error";
 
-/** Convert render failures into HTTP responses. */
+/**
+ * Convert render failures into HTTP responses.
+ *
+ * @param caught
+ */
 export function renderErrorResponse(caught: unknown): Response {
   if (isMiniHttpError(caught)) {
     return new Response(caught.message, {

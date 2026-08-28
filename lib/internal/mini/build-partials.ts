@@ -9,44 +9,48 @@ import { minify } from "../minify";
 import { buildContext } from "./build-context";
 import { renderErrorResponse } from "./render-error-response";
 
-/** Convert Mini partial definitions into Bun route handlers. */
+/**
+ * Convert Mini partial definitions into Bun route handlers.
+ *
+ * @param partials
+ */
 export function buildPartials(partials: Record<string, MiniPartial>) {
-  const bunRoutes: Record<string, (req: Request) => Promise<Response>> = {};
+  const bunRoutes: Record<string, (request: Request) => Promise<Response>> = {};
 
   for (const [name, partial] of Object.entries(partials)) {
     const normalizedName = name.replace(/^\/+/, "");
 
-    bunRoutes[`/partial/${normalizedName}`] = async (req: Request) => {
+    bunRoutes[`/partial/${normalizedName}`] = async (request: Request) => {
       try {
-        const ctx = buildContext(req, `/partial/${normalizedName}`);
+        const context = buildContext(request, `/partial/${normalizedName}`);
         const ttl = normalizeCacheTtl(partial.cache);
-        const cacheEnabled =
+        const isCacheEnabled =
           partial.cache === true || partial.cache === false
             ? partial.cache === true
-            : partial.cache != null;
-        const cacheKey = partialCacheKey(normalizedName, ctx);
+            : partial.cache != undefined;
+        const cacheKey = partialCacheKey(normalizedName, context);
 
-        if (cacheEnabled) {
+        if (isCacheEnabled) {
           const cached = getCached(cacheKey);
-          if (cached != null) {
+          if (cached != undefined) {
             return new Response(cached, {
               headers: { "Content-Type": "text/html; charset=utf-8" },
             });
           }
         }
 
-        const body = await partial.render(ctx);
+        const body = await partial.render(context);
         const minifiedBody = await minify.html(body);
 
-        if (cacheEnabled) {
+        if (isCacheEnabled) {
           setCached(cacheKey, minifiedBody, ttl);
         }
 
         return new Response(minifiedBody, {
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
-      } catch (caught) {
-        return renderErrorResponse(caught);
+      } catch (error) {
+        return renderErrorResponse(error);
       }
     };
   }

@@ -1,20 +1,36 @@
 import type { MaybePromise } from "bun";
 import { error, isMiniHttpError } from "../../helpers/error";
-import type { LayoutOptions, LayoutRenderArgs } from "../../core/layout";
+import type {
+  LayoutOptions,
+  LayoutRenderArgs as LayoutRenderArguments,
+} from "../../core/layout";
 import { buildDocument } from "./build-document";
 
-/** Wrap layout rendering with document assembly and consistent error mapping. */
+/**
+ * Wrap layout rendering with document assembly and consistent error mapping.
+ *
+ * @param bodyFunction
+ * @param headFunction
+ * @param options
+ */
 export function wrapRender(
-  bodyFn: (args: LayoutRenderArgs) => MaybePromise<string>,
-  headFn: ((args: LayoutRenderArgs) => MaybePromise<string>) | undefined,
-  opts: LayoutOptions | undefined,
-): (args: LayoutRenderArgs) => Promise<string> {
-  return async (args: LayoutRenderArgs): Promise<string> => {
+  bodyFunction: (arguments_: LayoutRenderArguments) => MaybePromise<string>,
+  headFunction:
+    | ((arguments_: LayoutRenderArguments) => MaybePromise<string>)
+    | undefined,
+  options: LayoutOptions | undefined,
+): (arguments_: LayoutRenderArguments) => Promise<string> {
+  return async (arguments_: LayoutRenderArguments): Promise<string> => {
     try {
-      return await buildDocument(args, bodyFn, headFn, opts);
-    } catch (caught) {
-      if (isMiniHttpError(caught)) throw caught;
-      if (caught instanceof Error) error(500, caught.message);
+      return await buildDocument(
+        arguments_,
+        bodyFunction,
+        headFunction,
+        options,
+      );
+    } catch (error_) {
+      if (isMiniHttpError(error_)) throw error_;
+      if (error_ instanceof Error) error(500, error_.message);
       error(500, "Internal Server Error");
     }
   };

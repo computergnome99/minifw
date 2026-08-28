@@ -1,6 +1,12 @@
 import { scopeId, STYLE_ID_ATTR } from "../encapsulate-styles";
 
-/** Append a scoped `<style>` tag to partial markup when route + CSS exist. */
+/**
+ * Append a scoped `<style>` tag to partial markup when route + CSS exist.
+ *
+ * @param markup
+ * @param style
+ * @param route
+ */
 export function inlineStyle(
   markup: string,
   style: string | undefined,

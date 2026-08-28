@@ -13,6 +13,8 @@ export const STYLE_ID_ATTR = "fwid";
  * Derive a short, deterministic scope ID from a route string by hashing it with
  * SHA-256, encoding the digest as URL-safe base64, and taking the first 10
  * characters (60 bits — ~1.15 quintillion possible IDs).
+ *
+ * @param route
  */
 export function scopeId(route: string): string {
   return createHash("sha256").update(route).digest("base64url").slice(0, 10);
@@ -24,12 +26,15 @@ export function scopeId(route: string): string {
  * pseudo-element so that `a::before` becomes `a[fwsc="x"]::before`. Nesting
  * combinators (`&`) are left alone; nested rules are processed independently by
  * the lightningcss Rule visitor.
+ *
+ * @param selectors
+ * @param id
  */
 function injectIntoSelectorList(
   selectors: SelectorList,
   id: string,
 ): SelectorList {
-  const attrComponent: SelectorComponent = {
+  const attributeComponent: SelectorComponent = {
     type: "attribute",
     name: SCOPE_ATTR,
     operation: { operator: "equal", value: id },
@@ -44,9 +49,9 @@ function injectIntoSelectorList(
 
       // Find the index of the first trailing pseudo-element (if any).
       let insertAt = compound.length;
-      for (let i = compound.length - 1; i >= 0; i--) {
-        if (compound[i]!.type === "pseudo-element") {
-          insertAt = i;
+      for (let index = compound.length - 1; index >= 0; index--) {
+        if (compound[index]!.type === "pseudo-element") {
+          insertAt = index;
         } else {
           break;
         }
@@ -54,17 +59,17 @@ function injectIntoSelectorList(
 
       result.push(
         ...compound.slice(0, insertAt),
-        attrComponent,
+        attributeComponent,
         ...compound.slice(insertAt),
       );
     };
 
-    for (let i = 0; i < selector.length; i++) {
-      const component = selector[i]!;
+    for (const [index, element] of selector.entries()) {
+      const component = element!;
       if (component.type === "combinator") {
-        flushCompound(i);
+        flushCompound(index);
         result.push(component);
-        compoundStart = i + 1;
+        compoundStart = index + 1;
       }
     }
     flushCompound(selector.length);
@@ -73,7 +78,12 @@ function injectIntoSelectorList(
   });
 }
 
-/** Scope a raw CSS string by injecting the attribute into every selector. */
+/**
+ * Scope a raw CSS string by injecting the attribute into every selector.
+ *
+ * @param css
+ * @param id
+ */
 function scopeCss(css: string, id: string): string {
   const { code } = transform({
     filename: "component.css",
@@ -122,12 +132,12 @@ export function encapsulateStyles(
     `<!doctype html><html><head></head><body>${markup}</body></html>`,
   );
 
-  for (const el of Array.from(document.body.querySelectorAll("*"))) {
-    (el as Element).setAttribute(SCOPE_ATTR, id);
+  for (const element of document.body.querySelectorAll("*")) {
+    (element as Element).setAttribute(SCOPE_ATTR, id);
   }
 
   return {
-    markup: document.body.innerHTML,
+    markup: document.body.getHTML(),
     css: scopeCss(css, id),
   };
 }

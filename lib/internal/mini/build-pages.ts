@@ -10,53 +10,58 @@ import { minify } from "../minify";
 import { buildContext } from "./build-context";
 import { renderErrorResponse } from "./render-error-response";
 
-/** Convert Mini page definitions into Bun route handlers. */
+/**
+ * Convert Mini page definitions into Bun route handlers.
+ *
+ * @param routes
+ * @param layout
+ */
 export function buildPages(
   routes: Record<string, MiniPage>,
   layout: MiniLayout,
 ) {
-  const bunRoutes: Record<string, (req: Request) => Promise<Response>> = {};
+  const bunRoutes: Record<string, (request: Request) => Promise<Response>> = {};
 
   for (const [path, page] of Object.entries(routes)) {
-    bunRoutes[path] = async (req: Request) => {
+    bunRoutes[path] = async (request: Request) => {
       try {
-        const ctx = buildContext(req, path);
+        const context = buildContext(request, path);
         const ttl = normalizeCacheTtl(page.cache);
-        const cacheEnabled =
+        const isCacheEnabled =
           page.cache === true || page.cache === false
             ? page.cache === true
-            : page.cache != null;
-        const cacheKey = pageCacheKey(path, ctx);
+            : page.cache != undefined;
+        const cacheKey = pageCacheKey(path, context);
 
-        if (cacheEnabled) {
+        if (isCacheEnabled) {
           const cached = getCached(cacheKey);
-          if (cached != null) {
+          if (cached != undefined) {
             return new Response(cached, {
               headers: { "Content-Type": "text/html; charset=utf-8" },
             });
           }
         }
 
-        const renderedPage = await page.render(ctx);
-        const body = !ctx.isHtmx
-          ? await layout.render({
-              context: ctx,
+        const renderedPage = await page.render(context);
+        const body = context.isHtmx
+          ? renderedPage
+          : await layout.render({
+              context: context,
               page: renderedPage,
               head: page.head,
-            })
-          : renderedPage;
+            });
 
         const minifiedBody = await minify.html(body);
 
-        if (cacheEnabled) {
+        if (isCacheEnabled) {
           setCached(cacheKey, minifiedBody, ttl);
         }
 
         return new Response(minifiedBody, {
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
-      } catch (caught) {
-        return renderErrorResponse(caught);
+      } catch (error) {
+        return renderErrorResponse(error);
       }
     };
   }

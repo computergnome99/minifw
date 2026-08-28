@@ -1,6 +1,10 @@
 import type { MiniHtmxConfig } from "../../core/layout";
 
-/** Build the final HTMX `<script>` tag for the selected loading strategy. */
+/**
+ * Build the final HTMX `<script>` tag for the selected loading strategy.
+ *
+ * @param htmx
+ */
 export async function buildHtmxTag(
   htmx: MiniHtmxConfig | undefined,
 ): Promise<string> {

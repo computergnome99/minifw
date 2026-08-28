@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { buildDocument } from "./build-document";
-import type { LayoutRenderArgs } from "../../core/layout";
+import type { LayoutRenderArguments } from "../../core/layout";
 import type { MiniContext } from "../../core/shared";
 
 describe("layout/buildDocument", () => {
@@ -12,14 +12,14 @@ describe("layout/buildDocument", () => {
   };
 
   test("assembles a document with head metadata and body content", async () => {
-    const args: LayoutRenderArgs = {
+    const arguments_: LayoutRenderArguments = {
       context,
       page: "<main>Body</main>",
       head: { title: "Home", description: "Desc" },
     };
 
     const output = await buildDocument(
-      args,
+      arguments_,
       ({ page }) => page,
       undefined,
       undefined,
@@ -32,16 +32,21 @@ describe("layout/buildDocument", () => {
   });
 
   test("injects global styles and scripts", async () => {
-    const args: LayoutRenderArgs = {
+    const arguments_: LayoutRenderArguments = {
       context,
       page: "<main>Body</main>",
       globalStylesCss: "body{color:red}",
       globalScripts: "window.__x=1",
     };
 
-    const output = await buildDocument(args, ({ page }) => page, undefined, {
-      disableRuntime: true,
-    });
+    const output = await buildDocument(
+      arguments_,
+      ({ page }) => page,
+      undefined,
+      {
+        disableRuntime: true,
+      },
+    );
 
     expect(output).toContain("<style>body{color:red}</style>");
     expect(output).toContain("<script>window.__x=1</script>");

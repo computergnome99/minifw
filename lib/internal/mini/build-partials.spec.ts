@@ -11,10 +11,10 @@ describe("buildPartials", () => {
 
     expect(Object.keys(handlers)).toContain("/partial/greeting");
 
-    const res = await handlers["/partial/greeting"]!(
+    const response = await handlers["/partial/greeting"]!(
       new Request("http://localhost/partial/greeting"),
     );
-    expect(await res.text()).toBe("<p>Hello</p>");
+    expect(await response.text()).toBe("<p>Hello</p>");
   });
 
   test("handles partial caching when enabled", async () => {
@@ -51,11 +51,11 @@ describe("buildPartials", () => {
       ),
     });
 
-    const res = await handlers["/partial/fail"]!(
+    const response = await handlers["/partial/fail"]!(
       new Request("http://localhost/partial/fail"),
     );
 
-    expect(res.status).toBe(409);
-    expect(await res.text()).toBe("conflict");
+    expect(response.status).toBe(409);
+    expect(await response.text()).toBe("conflict");
   });
 });

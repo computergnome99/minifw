@@ -86,9 +86,9 @@ export function mini(options: MiniOptions): Bun.Server<undefined> {
   const bunRoutes = {
     ...buildPages(routes, {
       ...resolvedLayout,
-      render: async (args) =>
+      render: async (arguments_) =>
         resolvedLayout.render({
-          ...args,
+          ...arguments_,
           globalStylesCss: await loadGlobalStyles(),
           globalScripts: await loadScripts(),
         }),

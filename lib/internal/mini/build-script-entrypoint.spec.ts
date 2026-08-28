@@ -1,13 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import path from "node:path";
 import { buildScriptEntrypoint } from "./build-script-entrypoint";
 
 describe("buildScriptEntrypoint", () => {
   test("builds and minifies a TypeScript entrypoint", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "minifw-build-script-"));
-    const entry = join(dir, "entry.ts");
+    const directory = await mkdtemp(
+      path.join(tmpdir(), "minifw-build-script-"),
+    );
+    const entry = path.join(directory, "entry.ts");
 
     try {
       await Bun.write(
@@ -20,7 +22,7 @@ describe("buildScriptEntrypoint", () => {
       expect(output).toContain("console.log");
       expect(output).not.toContain(": number");
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await rm(directory, { recursive: true, force: true });
     }
   });
 });

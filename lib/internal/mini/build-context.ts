@@ -1,14 +1,19 @@
 import { isHtmx } from "../../helpers";
 import type { MiniContext } from "../../core/shared";
-import { extractParams } from "./extract-params";
+import { extractParams as extractParameters } from "./extract-parameters";
 
-/** Build a MiniContext from a request and matched route. */
-export function buildContext(req: Request, route?: string): MiniContext {
+/**
+ * Build a MiniContext from a request and matched route.
+ *
+ * @param request
+ * @param route
+ */
+export function buildContext(request: Request, route?: string): MiniContext {
   return {
-    request: req,
-    url: new URL(req.url),
+    request: request,
+    url: new URL(request.url),
     route,
-    params: extractParams(req),
-    isHtmx: isHtmx(req),
+    params: extractParameters(request),
+    isHtmx: isHtmx(request),
   };
 }

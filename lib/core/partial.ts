@@ -12,13 +12,13 @@ import type { MiniFragment } from "./fragment";
  * unlike {@link MiniFragment} which is context-free.
  */
 export interface MiniPartial {
-  render(ctx: MiniContext): MaybePromise<string>;
+  render(context: MiniContext): MaybePromise<string>;
   style?(): MaybePromise<string>;
   cache?: MiniCacheOptions;
 }
 
-type PartialRenderFn = (ctx: MiniContext) => MaybePromise<string>;
-type PartialStyleFn = () => MaybePromise<string>;
+type PartialRenderFunction = (context: MiniContext) => MaybePromise<string>;
+type PartialStyleFunction = () => MaybePromise<string>;
 
 type PartialOptions = {
   allowNonHtmx?: boolean;
@@ -48,55 +48,58 @@ type PartialOptions = {
  * @returns A new {@link MiniPartial} instance.
  */
 export function partial(
-  render: PartialRenderFn,
+  render: PartialRenderFunction,
   options?: PartialOptions,
 ): MiniPartial;
 export function partial(
-  render: PartialRenderFn,
-  style: PartialStyleFn,
+  render: PartialRenderFunction,
+  style: PartialStyleFunction,
   options?: PartialOptions,
 ): MiniPartial;
 export function partial(
-  render: PartialRenderFn,
-  styleOrOptions?: PartialStyleFn | PartialOptions,
+  render: PartialRenderFunction,
+  styleOrOptions?: PartialStyleFunction | PartialOptions,
   options?: PartialOptions,
 ): MiniPartial {
-  const styleFn =
+  const styleFunction =
     typeof styleOrOptions === "function" ? styleOrOptions : undefined;
-  const opts = typeof styleOrOptions === "function" ? options : styleOrOptions;
+  const options_ =
+    typeof styleOrOptions === "function" ? options : styleOrOptions;
 
-  validateCacheOptions(opts?.cache);
+  validateCacheOptions(options_?.cache);
 
-  const allowNonHtmx = opts?.allowNonHtmx ?? false;
+  const allowNonHtmx = options_?.allowNonHtmx ?? false;
 
   /**
    * Unified partial render pipeline with HTMX guards, style handling, and
    * framework-level error mapping.
+   *
+   * @param context
    */
-  const wrappedRender = async (ctx: MiniContext): Promise<string> => {
+  const wrappedRender = async (context: MiniContext): Promise<string> => {
     try {
-      if (!allowNonHtmx && !ctx.isHtmx) {
+      if (!allowNonHtmx && !context.isHtmx) {
         error(400, "Partial requests must be made via HTMX.");
       }
 
-      const renderedPartial = await render(ctx);
+      const renderedPartial = await render(context);
       const rawStyle = wrappedStyle ? await wrappedStyle() : undefined;
 
       const encapsulated =
-        rawStyle && ctx.route
-          ? encapsulateStyles(renderedPartial, rawStyle, ctx.route)
+        rawStyle && context.route
+          ? encapsulateStyles(renderedPartial, rawStyle, context.route)
           : undefined;
       const markup = encapsulated?.markup ?? renderedPartial;
       const style = encapsulated?.css ?? rawStyle;
 
-      return inlineStyle(markup, style, ctx.route);
-    } catch (caught) {
-      if (isMiniHttpError(caught)) {
-        throw caught;
+      return inlineStyle(markup, style, context.route);
+    } catch (error_) {
+      if (isMiniHttpError(error_)) {
+        throw error_;
       }
 
-      if (caught instanceof Error) {
-        error(500, caught.message);
+      if (error_ instanceof Error) {
+        error(500, error_.message);
       }
 
       error(500, "Internal Server Error");
@@ -104,17 +107,17 @@ export function partial(
   };
 
   /** Wrap style resolution so style function failures map to Mini HTTP errors. */
-  const wrappedStyle = styleFn
+  const wrappedStyle = styleFunction
     ? async (): Promise<string> => {
         try {
-          return await styleFn();
-        } catch (caught) {
-          if (isMiniHttpError(caught)) {
-            throw caught;
+          return await styleFunction();
+        } catch (error_) {
+          if (isMiniHttpError(error_)) {
+            throw error_;
           }
 
-          if (caught instanceof Error) {
-            error(500, caught.message);
+          if (error_ instanceof Error) {
+            error(500, error_.message);
           }
 
           error(500, "Internal Server Error");
@@ -122,5 +125,5 @@ export function partial(
       }
     : undefined;
 
-  return { render: wrappedRender, style: wrappedStyle, cache: opts?.cache };
+  return { render: wrappedRender, style: wrappedStyle, cache: options_?.cache };
 }

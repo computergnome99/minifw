@@ -3,8 +3,11 @@ import { MiniHttpError } from "../helpers/error";
 import { page } from "./page";
 import type { MiniContext } from "./shared";
 
+const render = ({ params }: MiniContext) => `Hello ${params["name"]}`;
+const renderOk = () => "ok";
+
 describe("page", () => {
-  const ctx: MiniContext = {
+  const context: MiniContext = {
     request: new Request("http://localhost/hello/world"),
     url: new URL("http://localhost/hello/world"),
     params: { name: "world" },
@@ -12,21 +15,15 @@ describe("page", () => {
   };
 
   test("creates a page with render function and no head by default", async () => {
-    // Arrange
-    const render = ({ params }: MiniContext) => `Hello ${params.name}`;
-
-    // Act
     const result = page(render);
-    const output = await result.render(ctx);
+    const output = await result.render(context);
 
-    // Assert
     expect(typeof result.render).toBe("function");
     expect(result.head).toBeUndefined();
     expect(output).toBe("Hello world");
   });
 
   test("creates a page with head metadata when provided", () => {
-    // Arrange
     const head = {
       title: "Greeting",
       description: "Greeting page",
@@ -34,16 +31,14 @@ describe("page", () => {
       robots: "index,follow",
     };
 
-    // Act
     const result = page(() => "ok", { head });
 
-    // Assert
     expect(result.head).toEqual(head);
   });
 
   test("creates a page with a style function via overload", async () => {
     const result = page(
-      ({ params }) => `Hello ${params.name}`,
+      ({ params }) => `Hello ${params["name"]}`,
       () => ".greet { color: red; }",
       { head: { title: "Styled" } },
     );
@@ -58,7 +53,7 @@ describe("page", () => {
     });
 
     const output = await result.render({
-      ...ctx,
+      ...context,
       route: "/hello/world",
       isHtmx: true,
     });
@@ -67,41 +62,32 @@ describe("page", () => {
   });
 
   test("stores cache options when provided", () => {
-    // Arrange
-    const render = () => "ok";
+    const indefinite = page(renderOk, { cache: true });
+    const ttl = page(renderOk, { cache: { ttl: 250 } });
 
-    // Act
-    const indefinite = page(render, { cache: true });
-    const ttl = page(render, { cache: { ttl: 250 } });
-
-    // Assert
     expect(indefinite.cache).toBe(true);
     expect(ttl.cache).toEqual({ ttl: 250 });
   });
 
   test("converts unexpected render failures into HTTP 500 errors", async () => {
-    // Arrange
     const broken = page(() => {
       throw new Error("Page failed");
     });
 
-    // Act
-    const act = () => broken.render(ctx);
+    const act = () => broken.render(context);
 
-    // Assert
-    await expect(act).toThrow(MiniHttpError);
+    expect(act).toThrow(MiniHttpError);
 
     try {
       await act();
-    } catch (caught) {
-      const httpError = caught as MiniHttpError;
+    } catch (error) {
+      const httpError = error as MiniHttpError;
       expect(httpError.status).toBe(500);
       expect(httpError.message).toBe("Page failed");
     }
   });
 
   test("converts unexpected style failures into HTTP 500 errors", async () => {
-    // Arrange
     const broken = page(
       () => "ok",
       () => {
@@ -109,16 +95,14 @@ describe("page", () => {
       },
     );
 
-    // Act
     const act = () => broken.style!();
 
-    // Assert
-    await expect(act).toThrow(MiniHttpError);
+    expect(act).toThrow(MiniHttpError);
 
     try {
       await act();
-    } catch (caught) {
-      const httpError = caught as MiniHttpError;
+    } catch (error) {
+      const httpError = error as MiniHttpError;
       expect(httpError.status).toBe(500);
       expect(httpError.message).toBe("Style failed");
     }
