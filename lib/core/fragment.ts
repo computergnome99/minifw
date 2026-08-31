@@ -3,8 +3,8 @@ import type { MiniPartial } from "./partial";
 import type { MiniPage } from "./page";
 
 /**
- * Represents a fragment that can be rendered to a string. Fragments are do not
- * have server context and cannot be served. To serve a fragment, wrap it in
+ * Represents a fragment that can be rendered to a string. Fragments do not have
+ * server context and cannot be served. To serve a fragment, wrap it in
  * {@link MiniPartial} or {@link MiniPage}.
  */
 export type MiniFragment<Properties extends object | undefined = undefined> = (

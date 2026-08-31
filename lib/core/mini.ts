@@ -13,7 +13,7 @@ import type { MiniPartial } from "./partial";
 
 /**
  * Configuration options for {@link mini}. Extends Bun's serve options with
- * MiniFw-specific routing and layout fields.
+ * MiniFW-specific routing and layout fields.
  *
  * @remarks
  *   `routes` is omitted from the base Bun options and replaced with a typed map

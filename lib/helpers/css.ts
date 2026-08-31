@@ -21,5 +21,7 @@
  * @param values Interpolated values.
  * @returns The raw CSS string.
  */
-export const css = (strings: TemplateStringsArray, ...values: unknown[]) =>
-  String.raw(strings, ...values);
+export const css = (
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): string => String.raw(strings, ...values);

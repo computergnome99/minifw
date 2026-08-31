@@ -13,5 +13,7 @@
  * @param values Interpolated values.
  * @returns The raw HTML string.
  */
-export const html = (strings: TemplateStringsArray, ...values: unknown[]) =>
-  String.raw(strings, ...values);
+export const html = (
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): string => String.raw(strings, ...values);

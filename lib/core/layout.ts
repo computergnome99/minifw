@@ -56,6 +56,7 @@ export type LayoutOptions = {
    */
   bodyArguments?: Record<string, string | undefined>;
 
+  /** Disables MiniFW's client runtime for promoting swapped scoped styles. */
   disableRuntime?: boolean;
 };
 
