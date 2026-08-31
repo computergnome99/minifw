@@ -1,0 +1,25 @@
+{
+  "$schema": "https://jsr.io/schema/config-file.v1.json",
+  "name": "@calvinbonner/minifw",
+  "version": "0.0.1",
+  "exports": {
+    "./core": "./lib/core/index.ts",
+    "./helpers": "./lib/helpers/index.ts"
+  },
+  "exclude": [
+    ".ai/**",
+    ".editorconfig",
+    ".github/**",
+    "AGENTS.md",
+    "bun.lock",
+    "docs/**",
+    "eslint.config.ts",
+    "examples/**",
+    "**/*.spec.ts",
+    "**/__fixtures__/**",
+    "package.json",
+    "prettier.config.ts",
+    "tsconfig.json",
+    "typedoc.json"
+  ]
+}
