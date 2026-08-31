@@ -1,5 +1,6 @@
 /* eslint-disable unicorn/no-top-level-assignment-in-function */
 import { afterAll, beforeAll, expect, test } from "bun:test";
+import { captureScreenshot } from "../capture-screenshot";
 
 let server: ReturnType<typeof Bun.spawn> | undefined;
 
@@ -37,6 +38,7 @@ test("HTMX 4 inherits MiniFW's default boosted navigation", async () => {
       "document.body.getAttribute('hx-boost:inherited')",
     )) as string | undefined,
   ).toBe("true");
+  await captureScreenshot(view, "htmx-4", "initial");
 
   const settle = view.evaluate(
     "new Promise((resolve) => document.body.addEventListener('htmx:after:settle', resolve, { once: true }))",
@@ -55,4 +57,5 @@ test("HTMX 4 inherits MiniFW's default boosted navigation", async () => {
       "document.head.querySelectorAll('style[fwid]').length",
     )) as number,
   ).toBe(2);
+  await captureScreenshot(view, "htmx-4", "about");
 });

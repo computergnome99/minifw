@@ -1,5 +1,6 @@
 /* eslint-disable unicorn/no-top-level-assignment-in-function */
 import { afterAll, beforeAll, expect, test } from "bun:test";
+import { captureScreenshot } from "../capture-screenshot";
 
 let server: ReturnType<typeof Bun.spawn> | undefined;
 
@@ -42,6 +43,7 @@ test("HTMX 1 swaps a MiniFW partial", async () => {
       "document.querySelector('[data-count]')?.textContent",
     )) as string | undefined,
   ).toBe("Count: 1");
+  await captureScreenshot(view, "htmx-1", "initial");
 
   await view.click("button");
 
@@ -49,7 +51,10 @@ test("HTMX 1 swaps a MiniFW partial", async () => {
     const count = await view.evaluate(
       "document.querySelector('[data-count]')?.textContent",
     );
-    if (count === "Count: 2") return;
+    if (count === "Count: 2") {
+      await captureScreenshot(view, "htmx-1", "incremented");
+      return;
+    }
     await Bun.sleep(100);
   }
 

@@ -22,17 +22,17 @@ mini({
         html`<h1>HTMX 2 navigation</h1>
           <a href="/about" data-about-link>About</a>`,
       () => css`
-        .home {
+        h1 {
           color: teal;
         }
       `,
     ),
     "/about": page(
       () =>
-        html`<h1 class="about">About MiniFW</h1>
+        html`<h1>About MiniFW</h1>
           <a href="/" data-home-link>Home</a>`,
       () => css`
-        .about {
+        h1 {
           color: rebeccapurple;
         }
       `,

@@ -1,4 +1,4 @@
-import { layout, mini, page, partial } from "minifw/core";
+import { fragment, layout, mini, page, partial } from "minifw/core";
 import { html } from "minifw/helpers";
 
 const loadHtmx = () =>
@@ -6,11 +6,9 @@ const loadHtmx = () =>
     import.meta.dir + "/../../node_modules/htmx-1/dist/htmx.min.js",
   ).text();
 
-const counter = partial(
-  ({ url }) => {
-    const count = Number(url.searchParams.get("count") ?? "0") + 1;
-
-    return html`<section id="counter">
+const count = fragment(
+  ({ count }: { count: number }) => html`
+    <section id="counter">
       <p data-count>Count: ${count}</p>
       <button
         hx-get="/partial/counter?count=${count}"
@@ -19,7 +17,15 @@ const counter = partial(
       >
         Increment
       </button>
-    </section>`;
+    </section>
+  `,
+);
+
+const counter = partial(
+  ({ url }) => {
+    const number = Number(url.searchParams.get("count") ?? "0") + 1;
+
+    return count({ count: number });
   },
   { allowNonHtmx: true },
 );
