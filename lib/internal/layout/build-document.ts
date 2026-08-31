@@ -1,6 +1,5 @@
 import type { MaybePromise } from "bun";
 import type { LayoutOptions, LayoutRenderArguments } from "../../core/layout";
-import { runtime } from "../../runtime/runtime";
 import { html } from "../../helpers";
 import { buildBodyAttributes } from "./build-body-attributes";
 import { buildHtmxTag } from "./build-htmx-tag";
@@ -44,6 +43,7 @@ export async function buildDocument(
   }
 
   if (!options?.disableRuntime) {
+    const { runtime } = await import("../../runtime/runtime");
     headTags.push(`<script>${runtime}</script>`);
   }
 

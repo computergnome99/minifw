@@ -17,10 +17,7 @@ MiniFW is a Bun-only, server-rendered framework for HTMX applications. It keeps
 application state on the server and renders HTML responses, with a small client
 runtime only for HTMX navigation and scoped styles.
 
-## Getting Started
-
-To get started with MiniFW, just install the package using your preferred
-package manager:
+## Installation
 
 <details>
   <summary>Using <b>JSR</b> Repositories</summary>
@@ -71,7 +68,7 @@ yarn add @calvinbonner/minifw
 
 > [!NOTE]
 >
-> MiniFW requires Bun `1.4` or later to run the server.
+> MiniFW requires Bun `1.4` or later to run the `mini()` server.
 
 ## Quick Start
 
@@ -92,10 +89,11 @@ server options such as `port`, plus `routes`, `partials`, `layout`,
 
 > [!NOTE]
 >
-> You do not need to use `mini()`. The core primitives work independently and
-> can be integrated with any Bun server setup. `mini()` is a convenience wrapper
-> that wires routes, partials, layouts, global assets, and error handling
-> together for you.
+> You do not need to use `mini()` or a Bun server. The core primitives work
+> independently and can be integrated with any JavaScript server, including
+> `Bun.serve()` and Express. `mini()` is a Bun-focused convenience wrapper that
+> wires routes, partials, layouts, global assets, and error handling together
+> for you. See the Bun routes and Express examples for custom server adapters.
 
 ## Core API
 
