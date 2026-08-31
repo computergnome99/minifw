@@ -1,6 +1,7 @@
 /* eslint-disable unicorn/no-top-level-assignment-in-function */
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { captureScreenshot } from "../capture-screenshot";
+import { createWebView } from "../create-webview";
 
 let server: ReturnType<typeof Bun.spawn> | undefined;
 
@@ -28,9 +29,7 @@ afterAll(async () => {
 });
 
 test("HTMX 2 boosts MiniFW page navigation", async () => {
-  await using view = new Bun.WebView({
-    backend: { type: "chrome", url: false },
-  });
+  await using view = createWebView();
   await view.navigate("http://127.0.0.1:3102");
 
   expect(
