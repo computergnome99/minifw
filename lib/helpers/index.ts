@@ -1,3 +1,8 @@
+/**
+ * HTML, CSS, and rendering helpers for MiniFW applications.
+ *
+ * @module
+ */
 export * from "./css";
 export * from "./each";
 export * from "./error";

@@ -54,4 +54,11 @@ export default defineConfig(
       "unicorn/no-global-object-property-assignment": "off",
     },
   },
+  {
+    files: ["lib/core/index.ts", "lib/helpers/index.ts"],
+    rules: {
+      // JSR uses @module metadata to name these public documentation modules.
+      "jsdoc/check-tag-names": "off",
+    },
+  },
 );

@@ -5,8 +5,13 @@
   "type": "module",
   "description": "A simple, server-side framework for building hypermedia apps quickly with HTMX.",
   "license": "MIT",
-  "repository": {},
-  "bugs": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/computergnome99/minifw.git"
+  },
+  "bugs": {
+    "url": "https://github.com/computergnome99/minifw/issues"
+  },
   "homepage": "https://www.calvinbonner.dev/demos/minifw",
   "keywords": [
     "htmx",
