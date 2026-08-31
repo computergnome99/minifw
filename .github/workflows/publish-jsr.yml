@@ -1,0 +1,26 @@
+name: Publish JSR
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: "1.4.0"
+      - uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # v1
+        id: chrome
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run test:all
+        env:
+          BUN_CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+      - run: bunx jsr publish --provenance

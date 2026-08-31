@@ -1,0 +1,44 @@
+name: Publish npm
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: "1.4.0"
+      - uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # v1
+        id: chrome
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run test:all
+        env:
+          BUN_CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+      - run: npm publish --provenance --access public
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - run: |
+          version="${GITHUB_REF_NAME#v}"
+          notes="## Available on\n\n- [JSR](https://jsr.io/@calvinbonner/minifw@${version})\n- [npm](https://www.npmjs.com/package/@calvinbonner/minifw/v/${version})"
+          gh release create "$GITHUB_REF_NAME" --generate-notes --notes "$notes" --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
