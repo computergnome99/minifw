@@ -1,6 +1,7 @@
 {
   "name": "minifw",
   "version": "0.0.1",
+  "author": "Calvin Bonner <me@calvinbonner.com>",
   "type": "module",
   "description": "A simple, server-side framework for building hypermedia apps quickly with HTMX.",
   "license": "MIT",
@@ -33,6 +34,7 @@
     "test:types": "tsc --noEmit",
     "test:e2e": "bun test ./examples/htmx-1/app.e2e.ts ./examples/htmx-2/app.e2e.ts ./examples/htmx-4/app.e2e.ts",
     "test:all": "bun run test:unit && bun run test:types && bun run test:e2e",
+    "docs:build": "typedoc --options typedoc.json",
     "lint": "eslint --cache lib eslint.config.ts prettier.config.ts ; prettier --check .",
     "lint:fix": "eslint --cache lib eslint.config.ts prettier.config.ts --fix ; prettier --write .",
     "run:htmx-1": "bun examples/htmx-1/server.ts",
@@ -58,6 +60,7 @@
     "jiti": "^2.7.0",
     "prettier": "^3",
     "prettier-plugin-jsdoc": "^1.8",
+    "typedoc": "^0.28.20",
     "typescript": "^5",
     "typescript-eslint": "^8"
   },
