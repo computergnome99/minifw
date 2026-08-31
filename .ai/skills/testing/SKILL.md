@@ -29,6 +29,9 @@ user-invocable: true
   failure behavior when applicable.
 - For loaders using `Bun.file(...)`, preserve fixture-based tests: they verify
   real import bundling that string-only tests cannot prove.
+- Capture a screenshot with `captureScreenshot` for each distinct page or
+  interaction state covered by a Bun WebView e2e test. Use a descriptive, stable
+  view name; artifacts are written to `test-results/<example>/`.
 
 ## Procedure
 

@@ -59,3 +59,15 @@ test("HTMX 1 swaps a MiniFW partial", async () => {
 
   throw new Error("HTMX did not swap the counter partial");
 });
+
+test("MiniFW passes Bun route parameters to page renderers", async () => {
+  await using view = createWebView();
+  await view.navigate("http://127.0.0.1:3101/products/widget-42");
+
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-product-id]')?.textContent",
+    )) as string | undefined,
+  ).toBe("Product widget-42");
+  await captureScreenshot(view, "htmx-1", "product-widget-42");
+});

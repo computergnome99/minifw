@@ -40,6 +40,9 @@ mini({
       const initialCounter = await counter.render(context);
       return `<h1>HTMX 1 partials</h1>${initialCounter}`;
     }),
+    "/products/:id": page(
+      ({ params }) => `<h1 data-product-id>Product ${params["id"]}</h1>`,
+    ),
   },
   partials: { counter },
 });
