@@ -1,6 +1,6 @@
 {
   "name": "@calvinbonner/minifw",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Calvin Bonner <me@calvinbonner.com>",
   "type": "module",
   "description": "A simple, server-side framework for building hypermedia apps quickly with HTMX.",

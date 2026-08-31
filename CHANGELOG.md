@@ -2,7 +2,7 @@
 
 All notable changes to MiniFW will be documented in this file.
 
-## [0.1.0] - Upcoming
+## [0.1.0]
 
 ### Added
 
