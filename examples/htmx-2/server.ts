@@ -1,5 +1,5 @@
-import { layout, mini, page } from "minifw/core";
-import { html, css } from "minifw/helpers";
+import { layout, mini, page } from "@calvinbonner/minifw/core";
+import { html, css } from "@calvinbonner/minifw/helpers";
 
 const loadHtmx = () =>
   Bun.file(

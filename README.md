@@ -1,9 +1,14 @@
+[![JSR](https://img.shields.io/badge/jsr-f7df43?style=for-the-badge&logo=jsr&logoColor=093343)](https://jsr.io/@calvinbonner/minifw)
+[![NPM](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://npmjs.org/@calvinbonner/minifw)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/computergnome99/minifw)
+
 ```txt
          _ _     _   ___  _______
    /|  /| | |  /| | |  _|/      /
   / | / | | | / | | | |_|  /|  /
  /  |/  | | |/  | | |  _| / | /
 /______/|_|____/|_| |_| |/  |/
+
 ```
 
 # Mini Framework
@@ -12,26 +17,66 @@ MiniFW is a Bun-only, server-rendered framework for HTMX applications. It keeps
 application state on the server and renders HTML responses, with a small client
 runtime only for HTMX navigation and scoped styles.
 
-## Installation
+## Getting Started
 
-Install from npm:
+To get started with MiniFW, just install the package using your preferred
+package manager:
 
-```sh
-bun add minifw
-```
+<details>
+  <summary>Using <b>JSR</b> Repositories</summary>
 
-Or install from JSR:
-
-```sh
+```bash
+# deno
 deno add jsr:@calvinbonner/minifw
+
+# npm
+npx jsr add @calvinbonner/minifw
+
+# pnpm
+pnpm dlx jsr add @calvinbonner/minifw
+
+# bun
+bunx jsr add @calvinbonner/minifw
+
+# yarn
+yarn dlx jsr add @calvinbonner/minifw
 ```
 
-MiniFW requires Bun `1.4` or later to run the server.
+Or, when using Deno, you can import directly from JSR without installing:
+
+```ts
+import { mini, page } from "jsr:@calvinbonner/minifw/core";
+```
+
+</details>
+
+<details>
+  <summary>Using <b>NPM</b> Repositories</summary>
+
+```bash
+# npm
+npm install @calvinbonner/minifw
+
+# pnpm
+pnpm add @calvinbonner/minifw
+
+# bun
+bun add @calvinbonner/minifw
+
+# yarn
+yarn add @calvinbonner/minifw
+```
+
+</details>
+
+> [!NOTE]
+>
+> MiniFW requires Bun `1.4` or later to run the server.
 
 ## Quick Start
 
 ```ts
-import { mini, page } from "minifw/core";
+import { mini, page } from "@calvinbonner/minifw/core";
 
 mini({
   port: 3000,
@@ -45,9 +90,16 @@ mini({
 server options such as `port`, plus `routes`, `partials`, `layout`,
 `globalStyles`, and `scripts`.
 
+> [!NOTE]
+>
+> You do not need to use `mini()`. The core primitives work independently and
+> can be integrated with any Bun server setup. `mini()` is a convenience wrapper
+> that wires routes, partials, layouts, global assets, and error handling
+> together for you.
+
 ## Core API
 
-Import MiniFW's server primitives from `minifw/core`.
+Import MiniFW's server primitives from `@calvinbonner/minifw/core`.
 
 ### `mini()`
 
@@ -56,12 +108,15 @@ request receives a full document; an HTMX request receives only the page
 fragment and its head metadata.
 
 ```ts
-import { mini, page } from "minifw/core";
+import { mini, page } from "@calvinbonner/minifw/core";
+import { html } from "@calvinbonner/minifw/helpers";
 
 mini({
   port: 3000,
   routes: {
-    "/products/:id": page(({ params }) => `<h1>Product ${params["id"]}</h1>`),
+    "/products/:id": page(
+      ({ params }) => html`<h1>Product ${params["id"]}</h1>`,
+    ),
   },
   globalStyles: Bun.file("./app.css"),
   scripts: () => "console.log('MiniFW started')",
@@ -79,10 +134,12 @@ function overload to attach CSS scoped to that page's markup, and use `head` and
 `cache` options when needed.
 
 ```ts
-import { page } from "minifw/core";
+import { page } from "@calvinbonner/minifw/core";
+import { html } from "@calvinbonner/minifw/helpers";
 
 const profile = page(
-  ({ params }) => `<article class="profile"><h1>${params.name}</h1></article>`,
+  ({ params }) =>
+    html`<article class="profile"><h1>${params["name"]}</h1></article>`,
   () => ".profile { max-width: 60ch; }",
   {
     head: { title: "Profile" },
@@ -102,12 +159,22 @@ millisecond TTL, or `false`/omitted to disable caching.
 non-HTMX requests by default, which you can relax with `allowNonHtmx`.
 
 ```ts
-import { partial } from "minifw/core";
+import { partial } from "@calvinbonner/minifw/core";
+import { html } from "@calvinbonner/minifw/helpers";
 
 const counter = partial(
   ({ url }) => {
     const count = Number(url.searchParams.get("count") ?? "0") + 1;
-    return `<section id="counter"><p>Count: ${count}</p><button hx-get="/partial/counter?count=${count}" hx-target="#counter" hx-swap="outerHTML">Increment</button></section>`;
+    return html`<section id="counter">
+      <p>Count: ${count}</p>
+      <button
+        hx-get="/partial/counter?count=${count}"
+        hx-target="#counter"
+        hx-swap="outerHTML"
+      >
+        Increment
+      </button>
+    </section>`;
   },
   { allowNonHtmx: true },
 );
@@ -122,9 +189,10 @@ creates the document shell, includes title and metadata from `page()` options,
 loads HTMX, and enables boosted navigation.
 
 ```ts
-import { layout } from "minifw/core";
+import { layout } from "@calvinbonner/minifw/core";
+import { html } from "@calvinbonner/minifw/helpers";
 
-const appLayout = layout(({ page }) => `<main class="app">${page}</main>`, {
+const appLayout = layout(({ page }) => html`<main class="app">${page}</main>`, {
   htmx: { type: "cdn", version: "4.0.0" },
   bodyArguments: { class: "app-body" },
 });
@@ -141,10 +209,11 @@ client-side scoped-style promotion runtime is not needed.
 Use a typed fragment where reusable markup takes properties.
 
 ```ts
-import { fragment } from "minifw/core";
+import { fragment } from "@calvinbonner/minifw/core";
+import { html } from "@calvinbonner/minifw/helpers";
 
 const badge = fragment<{ label: string }>(
-  ({ label }) => `<span class="badge">${label}</span>`,
+  ({ label }) => html`<span class="badge">${label}</span>`,
 );
 
 const markup = await badge({ label: "New" });
@@ -154,10 +223,11 @@ Wrap a fragment in `page()` or `partial()` when it needs to be served.
 
 ## Helpers
 
-Import HTML/CSS template tags and rendering helpers from `minifw/helpers`.
+Import HTML/CSS template tags and rendering helpers from
+`@calvinbonner/minifw/helpers`.
 
 ```ts
-import { css, each, html, repeat } from "minifw/helpers";
+import { css, each, html, repeat } from "@calvinbonner/minifw/helpers";
 
 const rows = each(["Ada", "Lin"], (name) => html`<li>${name}</li>`);
 const stars = repeat(3, () => "*");

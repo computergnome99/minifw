@@ -1,5 +1,5 @@
 {
-  "name": "minifw",
+  "name": "@calvinbonner/minifw",
   "version": "0.0.1",
   "author": "Calvin Bonner <me@calvinbonner.com>",
   "type": "module",

@@ -1,5 +1,11 @@
-import { fragment, layout, mini, page, partial } from "minifw/core";
-import { html } from "minifw/helpers";
+import {
+  fragment,
+  layout,
+  mini,
+  page,
+  partial,
+} from "@calvinbonner/minifw/core";
+import { html } from "@calvinbonner/minifw/helpers";
 
 const loadHtmx = () =>
   Bun.file(
