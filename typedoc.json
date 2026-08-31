@@ -1,14 +1,8 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPointStrategy": "expand",
-  "entryPoints": [
-    "./lib/core",
-    "./lib/helpers"
-  ],
-  "exclude": [
-    "**/*.spec.ts",
-    "**/__fixtures__/**"
-  ],
+  "entryPoints": ["./lib/core", "./lib/helpers"],
+  "exclude": ["**/*.spec.ts", "**/__fixtures__/**"],
   "out": "./docs",
   "cleanOutputDir": true,
   "disableSources": true,
