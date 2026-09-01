@@ -13,19 +13,20 @@ type TreeGroup = {
 };
 
 export type TreeviewData = {
+  ariaLabel?: string;
   nodes: readonly TreeNode[];
   groups: readonly TreeGroup[];
 };
 
 /** Documentation-page tree navigation with server-rendered expansion state. */
-export const treeview = ({ groups, nodes }: TreeviewData) =>
+export const treeview = ({
+  ariaLabel = "Documentation sections",
+  groups,
+  nodes,
+}: TreeviewData) =>
   fragment(
     () => html`
-      <nav
-        id="docs-treeview"
-        aria-label="Documentation sections"
-        data-docs-tree
-      >
+      <nav id="docs-treeview" aria-label="${ariaLabel}" data-docs-tree>
         <ul>
           ${nodes
             .map(

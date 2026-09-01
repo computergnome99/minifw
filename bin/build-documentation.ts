@@ -18,10 +18,11 @@ type TypeDocumentComment = {
 type TypeDocumentReflection = {
   name: string;
   kind: number;
-  flags?: { isOptional?: boolean; isRest?: boolean };
+  flags?: { isOptional?: boolean; isReadonly?: boolean; isRest?: boolean };
   comment?: TypeDocumentComment;
   type?: TypeDocumentType;
   typeParameters?: Array<{ name: string }>;
+  extendedTypes?: TypeDocumentType[];
   parameters?: TypeDocumentReflection[];
   signatures?: TypeDocumentReflection[];
   children?: TypeDocumentReflection[];
@@ -66,13 +67,17 @@ type DocumentationDeclarationKind =
   | "variable";
 
 type DocumentationDeclaration = {
+  extends: string[];
   name: string;
   kind: DocumentationDeclarationKind;
+  optional: boolean;
+  readonly: boolean;
   summary: string;
   remarks: string;
   examples: string[];
   deprecated: string;
   type: string;
+  typeParameters: string[];
   signatures: DocumentationSignature[];
   members: DocumentationDeclaration[];
 };
@@ -153,6 +158,7 @@ function toDeclaration(
   const blockTags = reflection.comment?.blockTags ?? [];
 
   return {
+    extends: reflection.extendedTypes?.map((type) => renderType(type)) ?? [],
     name: reflection.name,
     kind:
       reflectionKinds[reflection.kind as keyof typeof reflectionKinds] ??
@@ -168,6 +174,10 @@ function toDeclaration(
       blockTags.find((tag) => tag.tag === "@deprecated")?.content,
     ),
     type: renderType(reflection.type),
+    typeParameters:
+      reflection.typeParameters?.map((parameter) => parameter.name) ?? [],
+    optional: reflection.flags?.isOptional ?? false,
+    readonly: reflection.flags?.isReadonly ?? false,
     signatures:
       reflection.signatures?.map((signature) => toSignature(signature)) ?? [],
     members: reflection.children?.map((child) => toDeclaration(child)) ?? [],

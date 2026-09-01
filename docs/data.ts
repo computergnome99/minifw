@@ -15,13 +15,17 @@ export interface DocumentationModule {
 }
 
 export interface DocumentationDeclaration {
+  extends?: string[];
   name: string;
   kind: DocumentationDeclarationKind;
+  optional?: boolean;
+  readonly?: boolean;
   summary: string;
   remarks: string;
   examples: string[];
   deprecated: string;
   type: string;
+  typeParameters?: string[];
   signatures: DocumentationSignature[];
   members: DocumentationDeclaration[];
 }

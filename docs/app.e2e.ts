@@ -103,3 +103,73 @@ test("documentation navigation uses static native disclosures", async () => {
     )) as boolean | undefined,
   ).toBe(false);
 }, 15_000);
+
+test("reference renders the generated Typedoc manifest in the docs layout", async () => {
+  await using view = createWebView();
+  await view.navigate(`${baseUrl}/reference`);
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const reference = await view.evaluate(
+      "document.querySelector('#docs-page .reference')",
+    );
+    if (reference) break;
+    await Bun.sleep(100);
+  }
+
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-tree]')?.getAttribute('aria-label')",
+    )) as string | undefined,
+  ).toBe("API reference sections");
+  expect((await view.evaluate("location.pathname")) as string).toStartWith(
+    "/reference/core/",
+  );
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-tree] a[href=\"/reference/core/mini\"]')?.textContent",
+    )) as string | undefined,
+  ).toBe("mini");
+  expect(
+    (await view.evaluate(
+      "document.querySelector('#docs-page .reference h1')?.textContent",
+    )) as string | undefined,
+  ).toBe("@calvinbonner/minifw API Reference");
+  expect(
+    (await view.evaluate(
+      "document.querySelectorAll('#docs-page .reference .reference-declaration').length",
+    )) as number,
+  ).toBeGreaterThan(0);
+  await view.evaluate(
+    "document.querySelector('[data-docs-tree] summary')?.click()",
+  );
+  await view.evaluate(
+    "document.querySelector('[data-docs-tree]')?.setAttribute('data-instance', 'initial')",
+  );
+  const settle = view.evaluate(
+    "new Promise((resolve) => document.body.addEventListener('htmx:after:settle', () => { if (location.pathname === '/reference/core/mini') resolve(null) }))",
+  );
+  await view.click('[data-docs-tree] a[href="/reference/core/mini"]');
+  await settle;
+
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-tree]')?.getAttribute('data-instance')",
+    )) as string | undefined,
+  ).toBe("initial");
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-tree] details')?.hasAttribute('open')",
+    )) as boolean | undefined,
+  ).toBe(true);
+  expect(
+    (await view.evaluate(
+      "document.querySelector('#docs-page .reference h2 code')?.textContent",
+    )) as string | undefined,
+  ).toBe("core/mini");
+  expect(
+    (await view.evaluate(
+      "[...document.querySelectorAll('#docs-page .reference-declaration > pre > code')].some((element) => element.textContent?.startsWith('interface MiniOptions'))",
+    )) as boolean,
+  ).toBe(true);
+  await captureScreenshot(view, "docs", "api-reference");
+}, 15_000);
