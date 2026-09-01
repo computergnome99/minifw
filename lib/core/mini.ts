@@ -5,26 +5,26 @@ import {
   createGlobalStylesLoader,
   createScriptsLoader,
 } from "../internal/mini/index";
-import type {
-  MiniErrorHandler,
-  MiniGlobalStyles,
-  MiniScripts,
-} from "../internal/mini/index";
+import type { MiniGlobalStyles, MiniScripts } from "../internal/mini/index";
 import { layout as createLayout } from "./layout";
 import type { MiniLayout } from "./layout";
 import type { MiniPage } from "./page";
 import type { MiniPartial } from "./partial";
 
-/** Called when MiniFW handles a page or partial rendering failure. */
-export type { MiniErrorHandler } from "../internal/mini/index";
+type BunRoutes = NonNullable<Bun.Serve.Options<undefined>["routes"]>;
+type BunRoute = BunRoutes[string];
+
+function isMiniPage(route: MiniPage | BunRoute): route is MiniPage {
+  return typeof route === "object" && route !== null && "render" in route;
+}
 
 /**
  * Configuration options for {@link mini}. Extends Bun's serve options with
  * MiniFW-specific routing and layout fields.
  *
  * @remarks
- *   `routes` is omitted from the base Bun options and replaced with a typed map
- *   of path patterns to {@link MiniPage} instances.
+ *   `routes` is omitted from the base Bun options and accepts either a
+ *   {@link MiniPage} or a native Bun route entry for each path pattern.
  */
 export interface MiniOptions extends Omit<
   Bun.Serve.Options<undefined>,
@@ -32,15 +32,16 @@ export interface MiniOptions extends Omit<
 > {
   /** Optional {@link MiniLayout} to wrap every page response. */
   layout?: MiniLayout;
-  /** Map of URL path patterns to {@link MiniPage} instances. */
-  routes?: Record<string, MiniPage>;
+  /**
+   * Map of URL path patterns to {@link MiniPage} instances or native Bun route
+   * entries. Native entries are passed directly to {@link Bun.serve}.
+   */
+  routes?: Record<string, MiniPage | BunRoute>;
   /**
    * Map of partial names to {@link MiniPartial} instances. Each partial is
    * served at `/partial/<name>`.
    */
   partials?: Record<string, MiniPartial>;
-  /** Called when MiniFW handles a page or partial rendering failure. */
-  onError?: MiniErrorHandler;
   /**
    * Global styles injected in `<head>` for full-page responses.
    *
@@ -84,7 +85,6 @@ export function mini(options: MiniOptions): Bun.Server<undefined> {
     layout,
     routes = {},
     partials = {},
-    onError,
     globalStyles,
     scripts,
     ...bunOptions
@@ -93,21 +93,26 @@ export function mini(options: MiniOptions): Bun.Server<undefined> {
   const loadGlobalStyles = createGlobalStylesLoader(globalStyles);
   const loadScripts = createScriptsLoader(scripts);
 
-  const bunRoutes = {
-    ...buildPages(
-      routes,
-      {
-        ...resolvedLayout,
-        render: async (arguments_) =>
-          resolvedLayout.render({
-            ...arguments_,
-            globalStylesCss: await loadGlobalStyles(),
-            globalScripts: await loadScripts(),
-          }),
-      },
-      onError,
-    ),
-    ...buildPartials(partials, onError),
+  const pages: Record<string, MiniPage> = {};
+  const nativeRoutes: BunRoutes = {};
+
+  for (const [path, route] of Object.entries(routes)) {
+    if (isMiniPage(route)) pages[path] = route;
+    else nativeRoutes[path] = route;
+  }
+
+  const bunRoutes: BunRoutes = {
+    ...nativeRoutes,
+    ...buildPages(pages, {
+      ...resolvedLayout,
+      render: async (arguments_) =>
+        resolvedLayout.render({
+          ...arguments_,
+          globalStylesCss: await loadGlobalStyles(),
+          globalScripts: await loadScripts(),
+        }),
+    }),
+    ...buildPartials(partials),
   };
 
   return Bun.serve({

@@ -91,7 +91,7 @@ describe("partial", () => {
     expect(output).toContain("User: alice");
   });
 
-  test("converts unexpected style failures into HTTP 500 errors", async () => {
+  test("propagates unexpected style failures", async () => {
     const view = partial(
       () => "ok",
       () => {
@@ -101,6 +101,6 @@ describe("partial", () => {
     );
     const act = () => view.style!();
 
-    expect(act).toThrow(MiniHttpError);
+    await expect(act).toThrow("Style failed");
   });
 });

@@ -8,7 +8,7 @@
 
 # Mini Framework
 
-MiniFW is a Bun-only, server-rendered framework for HTMX applications. It keeps
+MiniFW is a server-rendered framework for HTMX applications. It keeps
 application state on the server and renders HTML responses, with a small client
 runtime only for HTMX navigation and scoped styles.
 
@@ -69,11 +69,12 @@ yarn add @calvinbonner/minifw
 
 ```ts
 import { mini, page } from "@calvinbonner/minifw/core";
+import { html } from "@calvinbonner/minifw/helpers";
 
 mini({
   port: 3000,
   routes: {
-    "/": page(() => "<h1>Welcome to MiniFW</h1>"),
+    "/": page(() => html`<h1>Welcome to MiniFW</h1>`),
   },
 });
 ```
@@ -119,6 +120,35 @@ mini({
 `globalStyles` accepts a loader, `Bun.file(...)`, or an array of either. MiniFW
 bundles imported CSS before injecting it into full-page responses. `scripts`
 accepts the same forms for JavaScript or TypeScript source.
+
+Routes can also use native `Bun.serve()` route entries directly. Use
+`redirect()` for a static redirect response:
+
+```ts
+import { mini, page, redirect } from "@calvinbonner/minifw/core";
+
+mini({
+  routes: {
+    "/": page(() => "<h1>Home</h1>"),
+    "/health": () => new Response("OK"),
+    "/docs": redirect("/docs/getting-started", 301),
+  },
+});
+```
+
+Use `redirectTo()` inside a page, partial, or layout render function to stop
+rendering and redirect the client:
+
+```ts
+import { page } from "@calvinbonner/minifw/core";
+import { redirectTo } from "@calvinbonner/minifw/helpers";
+
+const account = page(({ params }) => {
+  if (!params["userId"]) redirectTo("/login");
+
+  return "<h1>Account</h1>";
+});
+```
 
 ### `page()`
 

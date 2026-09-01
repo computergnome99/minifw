@@ -1,5 +1,4 @@
 import type { MaybePromise } from "bun";
-import { error, isMiniHttpError } from "../helpers/error";
 import { encapsulateStyles } from "../internal/encapsulate-styles";
 import { inlineStyle } from "../internal/page/inline-style";
 import { renderHtmxHead } from "../internal/page/render-htmx-head";
@@ -62,61 +61,29 @@ export function page(
 
   validateCacheOptions(options_?.cache);
 
-  /**
-   * Unified page render pipeline with style encapsulation and error mapping.
-   *
-   * @param context
-   */
   const wrappedRender = async (context: MiniContext): Promise<string> => {
-    try {
-      const renderedPage = await render(context);
-      const rawStyle = wrappedStyle ? await wrappedStyle() : undefined;
+    const renderedPage = await render(context);
+    const rawStyle = wrappedStyle ? await wrappedStyle() : undefined;
 
-      const encapsulated =
-        rawStyle && context.route
-          ? encapsulateStyles(renderedPage, rawStyle, context.route)
-          : undefined;
-      const markup = encapsulated?.markup ?? renderedPage;
-      const style = encapsulated?.css ?? rawStyle;
+    const encapsulated =
+      rawStyle && context.route
+        ? encapsulateStyles(renderedPage, rawStyle, context.route)
+        : undefined;
+    const markup = encapsulated?.markup ?? renderedPage;
+    const style = encapsulated?.css ?? rawStyle;
 
-      const body = inlineStyle(markup, style, context.route);
+    const body = inlineStyle(markup, style, context.route);
 
-      if (!context.isHtmx) {
-        return body;
-      }
-
-      const head = renderHtmxHead(options_?.head);
-      return head ? `${head}\n${body}` : body;
-    } catch (error_) {
-      if (isMiniHttpError(error_)) {
-        throw error_;
-      }
-
-      if (error_ instanceof Error) {
-        error(500, error_.message);
-      }
-
-      error(500, "Internal Server Error");
+    if (!context.isHtmx) {
+      return body;
     }
+
+    const head = renderHtmxHead(options_?.head);
+    return head ? `${head}\n${body}` : body;
   };
 
-  /** Wrap style resolution so style function failures map to Mini HTTP errors. */
   const wrappedStyle = styleFunction
-    ? async (): Promise<string> => {
-        try {
-          return await styleFunction();
-        } catch (error_) {
-          if (isMiniHttpError(error_)) {
-            throw error_;
-          }
-
-          if (error_ instanceof Error) {
-            error(500, error_.message);
-          }
-
-          error(500, "Internal Server Error");
-        }
-      }
+    ? async (): Promise<string> => styleFunction()
     : undefined;
 
   return {

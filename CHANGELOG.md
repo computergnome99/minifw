@@ -8,5 +8,5 @@ All notable changes to MiniFW will be documented in this file.
 
 - Initial MiniFW release for Bun-powered, server-rendered HTMX applications.
 - Core factories: `mini`, `page`, `partial`, `layout`, and `fragment`.
-- Helpers: `html`, `css`, `each`, `repeat`, `isHtmx`, `error`,
-  `isMiniHttpError`, and `MiniHttpError`.
+- Helpers: `html`, `css`, `each`, `repeat`, `isHtmx`, `error`, `isMiniError`,
+  and `MiniHttpError`.

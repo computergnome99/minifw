@@ -1,5 +1,4 @@
 import type { MaybePromise } from "bun";
-import { error, isMiniHttpError } from "../../helpers/error";
 import type { LayoutOptions, LayoutRenderArguments } from "../../core/layout";
 import { buildDocument } from "./build-document";
 
@@ -17,18 +16,6 @@ export function wrapRender(
     | undefined,
   options: LayoutOptions | undefined,
 ): (arguments_: LayoutRenderArguments) => Promise<string> {
-  return async (arguments_: LayoutRenderArguments): Promise<string> => {
-    try {
-      return await buildDocument(
-        arguments_,
-        bodyFunction,
-        headFunction,
-        options,
-      );
-    } catch (error_) {
-      if (isMiniHttpError(error_)) throw error_;
-      if (error_ instanceof Error) error(500, error_.message);
-      error(500, "Internal Server Error");
-    }
-  };
+  return async (arguments_: LayoutRenderArguments): Promise<string> =>
+    buildDocument(arguments_, bodyFunction, headFunction, options);
 }

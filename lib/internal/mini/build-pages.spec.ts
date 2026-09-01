@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { error } from "../../helpers/error";
+import { error, MiniHttpError } from "../../helpers/error";
 import { layout } from "../../core/layout";
 import { page } from "../../core/page";
 import { buildPages } from "./build-pages";
@@ -87,7 +87,7 @@ describe("buildPages", () => {
     expect(calls).toBe(1);
   });
 
-  test("maps thrown HTTP errors to response status", async () => {
+  test("propagates MiniFW HTTP errors", async () => {
     const routes = {
       "/": page(() => {
         error(418, "teapot");
@@ -98,9 +98,23 @@ describe("buildPages", () => {
       layout(({ page }) => page),
     );
 
-    const response = await handlers["/"]!(new Request("http://localhost/"));
+    await expect(() =>
+      handlers["/"]!(new Request("http://localhost/")),
+    ).toThrow(MiniHttpError);
+  });
 
-    expect(response.status).toBe(418);
-    expect(await response.text()).toBe("teapot");
+  test("propagates unexpected errors", async () => {
+    const handlers = buildPages(
+      {
+        "/": page(() => {
+          throw new Error("boom");
+        }),
+      },
+      layout(({ page }) => page),
+    );
+
+    await expect(() =>
+      handlers["/"]!(new Request("http://localhost/")),
+    ).toThrow("boom");
   });
 });

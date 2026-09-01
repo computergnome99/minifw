@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { error, isMiniError } from "../helpers/error";
+import { redirectTo } from "../helpers/redirect-to";
 import { layout } from "./layout";
 import { mini } from "./mini";
 import { page } from "./page";
 import { partial } from "./partial";
+import { redirect } from "./redirect";
 
 const servers: Bun.Server<undefined>[] = [];
 
@@ -106,6 +109,59 @@ describe("mini integration", () => {
     expect(partialBody).toBe("<p>Hello</p>");
   });
 
+  test("passes native Bun routes directly to Bun.serve", async () => {
+    const server = mini({
+      routes: {
+        "/native": () => new Response("Native route"),
+        "/redirect": redirect("/native", 301),
+      },
+      port: 0,
+    });
+    servers.push(server);
+
+    const nativeResponse = await fetch(localTestUrl(server, "/native"));
+    const redirectResponse = await fetch(localTestUrl(server, "/redirect"), {
+      redirect: "manual",
+    });
+
+    expect(await nativeResponse.text()).toBe("Native route");
+    expect(redirectResponse.status).toBe(301);
+    expect(redirectResponse.headers.get("location")).toBe("/native");
+  });
+
+  test("returns render-time redirects", async () => {
+    const server = mini({
+      routes: {
+        "/account": page(() => redirectTo("/login", 303)),
+      },
+      port: 0,
+    });
+    servers.push(server);
+
+    const response = await fetch(localTestUrl(server, "/account"), {
+      redirect: "manual",
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/login");
+  });
+
+  test("returns redirects raised while rendering a layout", async () => {
+    const server = mini({
+      routes: { "/account": page(() => "<main>Account</main>") },
+      layout: layout(() => redirectTo("/maintenance", 307)),
+      port: 0,
+    });
+    servers.push(server);
+
+    const response = await fetch(localTestUrl(server, "/account"), {
+      redirect: "manual",
+    });
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("/maintenance");
+  });
+
   test("injects global styles and scripts into full-page responses", async () => {
     const server = mini({
       routes: {
@@ -136,17 +192,19 @@ describe("mini integration", () => {
     expect(htmxBody).not.toContain("body{color:red}");
   });
 
-  test("reports handled global stylesheet failures", async () => {
-    const errors: Array<{ error: unknown; request: Request }> = [];
+  test("passes MiniFW errors to Bun's error handler", async () => {
     const server = mini({
       routes: {
-        "/": page(() => "<main>Assets</main>"),
+        "/": page(() => {
+          error(418, "teapot");
+        }),
       },
-      globalStyles: () => {
-        throw new Error("Stylesheet failed to load");
-      },
-      onError: (error, request) => {
-        errors.push({ error, request });
+      error: (caught) => {
+        if (isMiniError(caught)) {
+          return new Response(caught.message, { status: caught.status });
+        }
+
+        return new Response("Internal Server Error", { status: 500 });
       },
       port: 0,
     });
@@ -154,12 +212,7 @@ describe("mini integration", () => {
 
     const response = await fetch(localTestUrl(server, "/"));
 
-    expect(response.status).toBe(500);
-    expect(errors).toHaveLength(1);
-    expect(errors[0]?.error).toBeInstanceOf(Error);
-    expect((errors[0]?.error as Error).message).toBe(
-      "Stylesheet failed to load",
-    );
-    expect(errors[0]?.request.url).toBe(localTestUrl(server, "/"));
+    expect(response.status).toBe(418);
+    expect(await response.text()).toBe("teapot");
   });
 });

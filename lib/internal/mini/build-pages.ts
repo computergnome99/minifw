@@ -7,21 +7,18 @@ import {
   setCached,
 } from "../cache";
 import { minify } from "../minify";
+import { isMiniRedirect } from "../../helpers/redirect-to";
 import { buildContext } from "./build-context";
-import { renderErrorResponse } from "./render-error-response";
-import type { MiniErrorHandler } from "./types";
 
 /**
  * Convert Mini page definitions into Bun route handlers.
  *
  * @param routes
  * @param layout
- * @param onError
  */
 export function buildPages(
   routes: Record<string, MiniPage>,
   layout: MiniLayout,
-  onError?: MiniErrorHandler,
 ) {
   const bunRoutes: Record<string, (request: Request) => Promise<Response>> = {};
 
@@ -68,8 +65,8 @@ export function buildPages(
           headers,
         });
       } catch (error) {
-        onError?.(error, request);
-        return renderErrorResponse(error);
+        if (isMiniRedirect(error)) return error.response;
+        throw error;
       }
     };
   }

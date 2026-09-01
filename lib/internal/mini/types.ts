@@ -7,9 +7,6 @@ export type MiniGlobalStyleEntry = MiniGlobalStyleLoader | Bun.BunFile;
 /** Global CSS configuration as single or multiple entries. */
 export type MiniGlobalStyles = MiniGlobalStyleEntry | MiniGlobalStyleEntry[];
 
-/** Called when MiniFW handles a page or partial rendering failure. */
-export type MiniErrorHandler = (error: unknown, request: Request) => void;
-
 /** Function form for global script loading. */
 export type MiniScriptLoader = () => MaybePromise<string>;
 /** Single global script entry, either loader or Bun.file. */

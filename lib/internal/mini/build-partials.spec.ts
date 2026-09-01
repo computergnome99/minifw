@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { error } from "../../helpers/error";
+import { error, MiniHttpError } from "../../helpers/error";
+import { redirectTo } from "../../helpers/redirect-to";
 import { partial } from "../../core/partial";
 import { buildPartials } from "./build-partials";
 
@@ -41,7 +42,7 @@ describe("buildPartials", () => {
     expect(calls).toBe(1);
   });
 
-  test("maps thrown HTTP errors to response status", async () => {
+  test("propagates MiniFW HTTP errors", async () => {
     const handlers = buildPartials({
       fail: partial(
         () => {
@@ -51,11 +52,23 @@ describe("buildPartials", () => {
       ),
     });
 
-    const response = await handlers["/partial/fail"]!(
-      new Request("http://localhost/partial/fail"),
+    await expect(() =>
+      handlers["/partial/fail"]!(new Request("http://localhost/partial/fail")),
+    ).toThrow(MiniHttpError);
+  });
+
+  test("returns render-time redirects", async () => {
+    const handlers = buildPartials({
+      account: partial(() => redirectTo("/login"), {
+        allowNonHtmx: true,
+      }),
+    });
+
+    const response = await handlers["/partial/account"]!(
+      new Request("http://localhost/partial/account"),
     );
 
-    expect(response.status).toBe(409);
-    expect(await response.text()).toBe("conflict");
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("/login");
   });
 });

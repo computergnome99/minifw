@@ -39,11 +39,11 @@ export function error(status: number, message: string): never {
 }
 
 /**
- * Check whether an unknown value is a MiniFW HTTP error.
+ * Check whether an unknown value is a MiniFW error.
  *
  * @param value Value to check.
  * @returns True if the value is a {@link MiniHttpError}.
  */
-export function isMiniHttpError(value: unknown): value is MiniHttpError {
+export function isMiniError(value: unknown): value is MiniHttpError {
   return value instanceof MiniHttpError;
 }

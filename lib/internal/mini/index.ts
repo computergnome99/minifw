@@ -8,7 +8,6 @@ export { createGlobalStylesLoader } from "./create-global-styles-loader";
 export { createScriptsLoader } from "./create-scripts-loader";
 
 export type {
-  MiniErrorHandler,
   MiniGlobalStyles,
   MiniScriptEntry,
   MiniScriptLoader,

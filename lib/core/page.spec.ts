@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { MiniHttpError } from "../helpers/error";
 import { page } from "./page";
 import type { MiniContext } from "./shared";
 
@@ -69,25 +68,17 @@ describe("page", () => {
     expect(ttl.cache).toEqual({ ttl: 250 });
   });
 
-  test("converts unexpected render failures into HTTP 500 errors", async () => {
+  test("propagates unexpected render failures", async () => {
     const broken = page(() => {
       throw new Error("Page failed");
     });
 
     const act = () => broken.render(context);
 
-    expect(act).toThrow(MiniHttpError);
-
-    try {
-      await act();
-    } catch (error) {
-      const httpError = error as MiniHttpError;
-      expect(httpError.status).toBe(500);
-      expect(httpError.message).toBe("Page failed");
-    }
+    await expect(act).toThrow("Page failed");
   });
 
-  test("converts unexpected style failures into HTTP 500 errors", async () => {
+  test("propagates unexpected style failures", async () => {
     const broken = page(
       () => "ok",
       () => {
@@ -97,14 +88,6 @@ describe("page", () => {
 
     const act = () => broken.style!();
 
-    expect(act).toThrow(MiniHttpError);
-
-    try {
-      await act();
-    } catch (error) {
-      const httpError = error as MiniHttpError;
-      expect(httpError.status).toBe(500);
-      expect(httpError.message).toBe("Style failed");
-    }
+    await expect(act).toThrow("Style failed");
   });
 });

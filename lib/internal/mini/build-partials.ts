@@ -6,20 +6,15 @@ import {
   setCached,
 } from "../cache";
 import { minify } from "../minify";
+import { isMiniRedirect } from "../../helpers/redirect-to";
 import { buildContext } from "./build-context";
-import { renderErrorResponse } from "./render-error-response";
-import type { MiniErrorHandler } from "./types";
 
 /**
  * Convert Mini partial definitions into Bun route handlers.
  *
  * @param partials
- * @param onError
  */
-export function buildPartials(
-  partials: Record<string, MiniPartial>,
-  onError?: MiniErrorHandler,
-) {
+export function buildPartials(partials: Record<string, MiniPartial>) {
   const bunRoutes: Record<string, (request: Request) => Promise<Response>> = {};
 
   for (const [name, partial] of Object.entries(partials)) {
@@ -55,8 +50,8 @@ export function buildPartials(
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
       } catch (error) {
-        onError?.(error, request);
-        return renderErrorResponse(error);
+        if (isMiniRedirect(error)) return error.response;
+        throw error;
       }
     };
   }

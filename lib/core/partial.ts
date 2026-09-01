@@ -1,5 +1,5 @@
 import type { MaybePromise } from "bun";
-import { error, isMiniHttpError } from "../helpers/error";
+import { error } from "../helpers/error";
 import { encapsulateStyles } from "../internal/encapsulate-styles";
 import { inlineStyle } from "../internal/partial/inline-style";
 import { validateCacheOptions } from "../internal/partial/validate-cache-options";
@@ -70,59 +70,26 @@ export function partial(
 
   const allowNonHtmx = options_?.allowNonHtmx ?? false;
 
-  /**
-   * Unified partial render pipeline with HTMX guards, style handling, and
-   * framework-level error mapping.
-   *
-   * @param context
-   */
   const wrappedRender = async (context: MiniContext): Promise<string> => {
-    try {
-      if (!allowNonHtmx && !context.isHtmx) {
-        error(400, "Partial requests must be made via HTMX.");
-      }
-
-      const renderedPartial = await render(context);
-      const rawStyle = wrappedStyle ? await wrappedStyle() : undefined;
-
-      const encapsulated =
-        rawStyle && context.route
-          ? encapsulateStyles(renderedPartial, rawStyle, context.route)
-          : undefined;
-      const markup = encapsulated?.markup ?? renderedPartial;
-      const style = encapsulated?.css ?? rawStyle;
-
-      return inlineStyle(markup, style, context.route);
-    } catch (error_) {
-      if (isMiniHttpError(error_)) {
-        throw error_;
-      }
-
-      if (error_ instanceof Error) {
-        error(500, error_.message);
-      }
-
-      error(500, "Internal Server Error");
+    if (!allowNonHtmx && !context.isHtmx) {
+      error(400, "Partial requests must be made via HTMX.");
     }
+
+    const renderedPartial = await render(context);
+    const rawStyle = wrappedStyle ? await wrappedStyle() : undefined;
+
+    const encapsulated =
+      rawStyle && context.route
+        ? encapsulateStyles(renderedPartial, rawStyle, context.route)
+        : undefined;
+    const markup = encapsulated?.markup ?? renderedPartial;
+    const style = encapsulated?.css ?? rawStyle;
+
+    return inlineStyle(markup, style, context.route);
   };
 
-  /** Wrap style resolution so style function failures map to Mini HTTP errors. */
   const wrappedStyle = styleFunction
-    ? async (): Promise<string> => {
-        try {
-          return await styleFunction();
-        } catch (error_) {
-          if (isMiniHttpError(error_)) {
-            throw error_;
-          }
-
-          if (error_ instanceof Error) {
-            error(500, error_.message);
-          }
-
-          error(500, "Internal Server Error");
-        }
-      }
+    ? async (): Promise<string> => styleFunction()
     : undefined;
 
   return { render: wrappedRender, style: wrappedStyle, cache: options_?.cache };

@@ -39,7 +39,7 @@ describe("layout/wrapRender", () => {
     await expect(() => render(arguments_)).toThrow(MiniHttpError);
   });
 
-  test("converts unknown errors to HTTP 500 MiniHttpError", async () => {
+  test("propagates unknown errors", async () => {
     const render = wrapRender(
       () => {
         throw new Error("boom");
@@ -48,6 +48,6 @@ describe("layout/wrapRender", () => {
       undefined,
     );
 
-    await expect(() => render(arguments_)).toThrow(MiniHttpError);
+    await expect(() => render(arguments_)).toThrow("boom");
   });
 });
