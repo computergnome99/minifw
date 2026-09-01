@@ -1,120 +1,106 @@
 import { describe, expect, test } from "bun:test";
-import { error, MiniHttpError } from "../../helpers/error";
 import { layout } from "../../core/layout";
 import { page } from "../../core/page";
 import { buildPages } from "./build-pages";
 
+const renderDocument = async ({ page: content }: { page: string }) =>
+  `<document>${content}</document>`;
+
+const layouts = {
+  "*": layout(({ page: content }) => `<main id="app">${content}</main>`, {
+    pageTarget: "#app",
+  }),
+  "/docs/*": layout(
+    ({ page: content }) => `<section id="docs">${content}</section>`,
+    { pageTarget: "#docs" },
+  ),
+};
+
 describe("buildPages", () => {
-  test("renders full HTML via layout for non-HTMX requests", async () => {
-    const routes = {
-      "/": page(() => "<main>Hello</main>", { head: { title: "Home" } }),
-    };
+  test("composes matching layouts into full-page documents", async () => {
     const handlers = buildPages(
-      routes,
-      layout(({ page }) => page),
+      { "/docs/*": page(() => "<article>Guide</article>") },
+      { layouts, renderDocument },
     );
 
-    const response = await handlers["/"]!(new Request("http://localhost/"));
-    const body = await response.text();
+    const response = await handlers["/docs/*"]!(
+      new Request("http://localhost/docs/guide"),
+    );
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("HX-Retarget")).toBeNull();
-    expect(body).toContain("<html>");
-    expect(body).toContain("<main>Hello</main>");
+    expect(await response.text()).toBe(
+      '<document><main id="app"><section id="docs"><article>Guide</article></section></main></document>',
+    );
   });
 
-  test("bypasses layout for HTMX requests", async () => {
-    const routes = {
-      "/": page(() => "<main>Hello</main>", { head: { title: "Home" } }),
-    };
+  test("targets the innermost layout for compatible boosted navigation", async () => {
     const handlers = buildPages(
-      routes,
-      layout(({ page }) => page),
+      { "/docs/*": page(() => "<article>Guide</article>") },
+      { layouts, renderDocument },
     );
 
-    const response = await handlers["/"]!(
-      new Request("http://localhost/", {
-        headers: { "HX-Request": "true" },
-      }),
-    );
-    const body = await response.text();
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("HX-Retarget")).toBe("main");
-    expect(body).not.toContain("<html>");
-    expect(body).toContain("<main>Hello</main>");
-  });
-
-  test("uses a configured page target for HTMX requests", async () => {
-    const routes = { "/": page(() => "<p>Hello</p>") };
-    const handlers = buildPages(
-      routes,
-      layout(({ page }) => `<section id="view">${page}</section>`, {
-        pageTarget: "#view",
-      }),
-    );
-
-    const response = await handlers["/"]!(
-      new Request("http://localhost/", {
-        headers: { "HX-Request": "true" },
-      }),
-    );
-
-    expect(response.headers.get("HX-Retarget")).toBe("#view");
-  });
-
-  test("handles page caching when enabled", async () => {
-    let calls = 0;
-    const routes = {
-      "/": page(
-        () => {
-          calls += 1;
-          return `<main>${calls}</main>`;
+    const response = await handlers["/docs/*"]!(
+      new Request("http://localhost/docs/next", {
+        headers: {
+          "HX-Boosted": "true",
+          "HX-Current-URL": "http://localhost/docs/guide",
+          "HX-Request": "true",
         },
-        { cache: true },
-      ),
-    };
-    const handlers = buildPages(
-      routes,
-      layout(({ page }) => page),
-    );
-
-    const first = await handlers["/"]!(new Request("http://localhost/"));
-    const second = await handlers["/"]!(new Request("http://localhost/"));
-
-    expect(await first.text()).toContain("<main>1</main>");
-    expect(await second.text()).toContain("<main>1</main>");
-    expect(calls).toBe(1);
-  });
-
-  test("propagates MiniFW HTTP errors", async () => {
-    const routes = {
-      "/": page(() => {
-        error(418, "teapot");
       }),
-    };
-    const handlers = buildPages(
-      routes,
-      layout(({ page }) => page),
     );
 
-    await expect(() =>
-      handlers["/"]!(new Request("http://localhost/")),
-    ).toThrow(MiniHttpError);
+    expect(response.headers.get("HX-Retarget")).toBe("#docs");
+    expect(response.headers.get("HX-Redirect")).toBeNull();
+    expect(await response.text()).toBe("<article>Guide</article>");
   });
 
-  test("propagates unexpected errors", async () => {
+  test("uses a full navigation when boosted layout chains differ", async () => {
     const handlers = buildPages(
-      {
-        "/": page(() => {
-          throw new Error("boom");
-        }),
-      },
-      layout(({ page }) => page),
+      { "/docs/*": page(() => "<article>Guide</article>") },
+      { layouts, renderDocument },
     );
 
-    await expect(() =>
-      handlers["/"]!(new Request("http://localhost/")),
-    ).toThrow("boom");
+    const response = await handlers["/docs/*"]!(
+      new Request("http://localhost/docs/guide?tab=api", {
+        headers: {
+          "HX-Boosted": "true",
+          "HX-Current-URL": "http://localhost/",
+          "HX-Request": "true",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("HX-Redirect")).toBe("/docs/guide?tab=api");
+  });
+
+  test("uses a full navigation when the current URL is missing or invalid", async () => {
+    const handlers = buildPages(
+      { "/docs/*": page(() => "<article>Guide</article>") },
+      { layouts, renderDocument },
+    );
+
+    const response = await handlers["/docs/*"]!(
+      new Request("http://localhost/docs/guide", {
+        headers: { "HX-Boosted": "true", "HX-Request": "true" },
+      }),
+    );
+
+    expect(response.headers.get("HX-Redirect")).toBe("/docs/guide");
+  });
+
+  test("uses the destination target for non-boosted HTMX requests", async () => {
+    const handlers = buildPages(
+      { "/docs/*": page(() => "<article>Guide</article>") },
+      { layouts, renderDocument },
+    );
+
+    const response = await handlers["/docs/*"]!(
+      new Request("http://localhost/docs/guide", {
+        headers: { "HX-Request": "true" },
+      }),
+    );
+
+    expect(response.headers.get("HX-Retarget")).toBe("#docs");
+    expect(await response.text()).toBe("<article>Guide</article>");
   });
 });

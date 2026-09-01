@@ -10,14 +10,13 @@ const appLayout = layout(
   ({ page: content }) =>
     html`<h1>Example MiniFW App</h1>
       <main id="view">${content}</main>`,
-  {
-    htmx: { type: "local", loadFn: loadHtmx },
-  },
+  { pageTarget: "#view" },
 );
 
 mini({
   port: 3104,
-  layout: appLayout,
+  layouts: { "*": appLayout },
+  config: { htmx: { type: "local", loadFn: loadHtmx } },
   routes: {
     "/": page(
       () =>

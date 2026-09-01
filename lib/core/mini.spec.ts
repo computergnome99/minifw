@@ -37,7 +37,7 @@ afterEach(async () => {
 });
 
 describe("mini integration", () => {
-  test("uses default layout when no layout is provided", async () => {
+  test("builds a document when no route layout is provided", async () => {
     const server = mini({
       routes: {
         "/": page(() => "<main>Home</main>", {
@@ -54,19 +54,19 @@ describe("mini integration", () => {
     expect(response.status).toBe(200);
     expect(body).toContain("<html>");
     expect(body).toContain("<body");
-    expect(body).toContain("<main><main>Home</main></main>");
+    expect(body).toContain("<main>Home</main>");
   });
 
-  test("uses provided layout for route rendering", async () => {
+  test("uses matching layouts for route rendering", async () => {
     const server = mini({
       routes: {
         "/": page(() => "<article>Custom</article>", {
           head: { title: "Custom" },
         }),
       },
-      layout: layout(
-        ({ page }) => `<section class=\"shell\">${page}</section>`,
-      ),
+      layouts: {
+        "*": layout(({ page }) => `<section class=\"shell\">${page}</section>`),
+      },
       port: 0,
     });
     servers.push(server);
@@ -103,7 +103,7 @@ describe("mini integration", () => {
     const partialBody = await partialResponse.text();
 
     expect(pageResponse.status).toBe(200);
-    expect(pageBody).toContain("<main><main>Page</main></main>");
+    expect(pageBody).toContain("<main>Page</main>");
 
     expect(partialResponse.status).toBe(200);
     expect(partialBody).toBe("<p>Hello</p>");
@@ -149,7 +149,7 @@ describe("mini integration", () => {
   test("returns redirects raised while rendering a layout", async () => {
     const server = mini({
       routes: { "/account": page(() => "<main>Account</main>") },
-      layout: layout(() => redirectTo("/maintenance", 307)),
+      layouts: { "*": layout(() => redirectTo("/maintenance", 307)) },
       port: 0,
     });
     servers.push(server);
@@ -169,8 +169,10 @@ describe("mini integration", () => {
           head: { title: "Assets" },
         }),
       },
-      globalStyles: () => "body { color: red; }",
-      scripts: () => "window.__miniIntegration=1;",
+      config: {
+        globalStyles: () => "body { color: red; }",
+        scripts: () => "window.__miniIntegration=1;",
+      },
       port: 0,
     });
     servers.push(server);

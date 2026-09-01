@@ -47,14 +47,17 @@ const styledPartial = partial(
 
 mini({
   port: 3101,
-  layout: layout(
-    ({ page: content }) =>
-      html`<h1>Example MiniFW App</h1>
-        <main id="view">${content}</main>`,
-    {
-      htmx: { type: "local", loadFn: loadHtmx },
-    },
-  ),
+  layouts: {
+    "*": layout(
+      ({ page: content }) =>
+        html`<h1>Example MiniFW App</h1>
+          <main id="view">${content}</main>`,
+      { pageTarget: "#view" },
+    ),
+  },
+  config: {
+    htmx: { type: "local", loadFn: loadHtmx },
+  },
   routes: {
     "/": page(async (context) => {
       const initialCounter = await counter.render(context);

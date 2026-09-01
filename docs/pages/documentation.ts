@@ -1,7 +1,7 @@
 import { page } from "../../lib/core";
-import { css, error, html } from "../../lib/helpers";
+import { error, html } from "../../lib/helpers";
 import { parseMarkdown } from "../markdown";
-import { treeview, treeviewStyles } from "../partials/treeview";
+import { treeview } from "../partials/treeview";
 
 type DocumentationPage = {
   group?: string;
@@ -29,7 +29,7 @@ const documentationGroups = [
   ...new Set(documentationPages.flatMap(({ group }) => (group ? [group] : []))),
 ];
 
-const tree = treeview({
+export const documentationTree = treeview({
   nodes: documentationPages
     .filter(({ group }) => !group)
     .map(({ label, path }) => ({ label, href: `/docs/${path}` })),
@@ -89,14 +89,8 @@ export const documentation = page(
 
     if (!document) error(404, "Documentation page not found");
 
-    return html`
-      ${tree()}
-      <div class="content">${document.html}</div>
-    `;
+    return html`<div class="content">${document.html}</div>`;
   },
-  () => css`
-    ${treeviewStyles}
-  `,
   {
     head: {
       title: "MiniFW | Documentation",

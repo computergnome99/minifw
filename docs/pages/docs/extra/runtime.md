@@ -6,9 +6,8 @@ tags: [runtime, htmx, styles, browser]
 
 # Runtime
 
-MiniFW includes a small browser runtime in full-page
-[layouts](/docs/core/layout). Its only job is to keep scoped CSS available after
-HTMX swaps.
+MiniFW includes a small browser runtime in full-page documents. Its only job is
+to keep scoped CSS available after HTMX swaps.
 
 ## Why It Exists
 
@@ -22,12 +21,13 @@ identifier before adding a style, avoiding duplicates across repeated swaps.
 
 ## Configuration
 
-The runtime is enabled by default. Set `disableRuntime: true` in `layout()`
-options when an application handles swapped scoped styles itself:
+The runtime is enabled by default. Set `config.runtime: false` in
+[mini()](/docs/core/mini) when an application handles swapped scoped styles
+itself:
 
 ```ts
-const appLayout = layout(({ page }) => `<main>${page}</main>`, {
-  disableRuntime: true,
+mini({
+  config: { runtime: false },
 });
 ```
 

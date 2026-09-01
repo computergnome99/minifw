@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test";
 import { isMiniRedirect, MiniRedirect, redirectTo } from "./redirect-to";
 
-test("redirectTo throws a redirect with the requested destination and status", () => {
-  const act = () => redirectTo("/docs/getting-started", 301);
+const redirectToGettingStarted = () => redirectTo("/docs/getting-started", 301);
 
-  expect(act).toThrow(MiniRedirect);
+test("redirectTo throws a redirect with the requested destination and status", () => {
+  expect(redirectToGettingStarted).toThrow(MiniRedirect);
 
   try {
-    act();
+    redirectToGettingStarted();
   } catch (error) {
     expect(isMiniRedirect(error)).toBe(true);
     expect((error as MiniRedirect).response.status).toBe(301);

@@ -6,10 +6,9 @@ tags: [server, routes, bun, htmx]
 
 # `mini()`
 
-`mini()` starts a Bun server with MiniFW's server-rendered page and HTMX
-conventions. It accepts the normal
-[Bun.serve](https://bun.sh/docs/runtime/http/server) options, then adds page
-composition, named partial endpoints, global assets, and scoped-style handling.
+`mini()` starts a Bun server with MiniFW page rendering, route layouts, and HTMX
+navigation. Bun server options remain at the top level; MiniFW document and
+browser settings belong in `config`.
 
 ## Complete Example
 
@@ -26,8 +25,9 @@ import { html, isMiniError } from "@calvinbonner/minifw/helpers";
 const appLayout = layout(
   ({ page }) => html`
     <header><a href="/">MiniFW</a></header>
-    <main id="content">${page}</main>
+    <main id="app-page">${page}</main>
   `,
+  { pageTarget: "#app-page" },
 );
 
 const home = page(() => html`<h1>Welcome to MiniFW</h1>`, {
@@ -40,15 +40,17 @@ const clock = partial(() => html`<time>${new Date().toISOString()}</time>`, {
 
 const server = mini({
   port: 3000,
-  layout: appLayout,
+  layouts: { "*": appLayout },
   routes: {
     "/": home,
     "/health": () => new Response("OK"),
     "/docs": redirect("/docs/getting-started", 301),
   },
   partials: { clock },
-  globalStyles: Bun.file("./app.css"),
-  scripts: () => "console.info('MiniFW started')",
+  config: {
+    globalStyles: Bun.file("./app.css"),
+    scripts: () => "console.info('MiniFW started')",
+  },
   error(caught) {
     if (isMiniError(caught)) {
       return new Response(caught.message, { status: caught.status });
@@ -59,114 +61,90 @@ const server = mini({
 });
 ```
 
-`mini()` returns the running `Bun.Server`, so you can use its standard methods
-and properties after startup.
+`mini()` returns the running `Bun.Server`, so standard server methods and
+properties remain available after startup.
 
-## Routes
+## Routes And Partials
 
-`routes` may contain MiniFW [page()](/docs/core/page) instances or native
-[Bun.serve](https://bun.sh/docs/runtime/http/server) route entries. Pages
-receive layout handling and HTMX behavior; native entries are passed directly to
-Bun.
+`routes` accepts MiniFW [page()](/docs/core/page) instances or native
+[Bun.serve](https://bun.sh/docs/runtime/http/server) route entries. Native
+entries bypass MiniFW layouts, rendering, caching, scoped styles, and request
+context, which makes them appropriate for assets, webhooks, and health checks.
+
+Register [partials](/docs/core/partial) by name under `partials`; MiniFW serves
+each at `/partial/<name>`. Use [redirect()](/docs/core/redirect) for a fixed
+native route redirect and [redirectTo()](/docs/helpers/redirect-to) when a
+render must decide to redirect.
+
+## Layouts
+
+`layouts` maps route patterns to composable [layout()](/docs/core/layout)
+shells. Every matching layout wraps the leaf page from least to most specific:
 
 ```ts
-const server = mini({
-  routes: {
-    "/": page(() => "<h1>Home</h1>"),
-    "/health": () => new Response("OK"),
-    "/docs": redirect("/docs/getting-started", 301),
+mini({
+  layouts: {
+    "*": appLayout,
+    "/docs/*": docsLayout,
+    "/admin/*": adminLayout,
   },
 });
 ```
 
-Use [redirect()](/docs/core/redirect) for a redirect configured directly in a
-route map. Use [redirectTo()](/docs/helpers/redirect-to) inside page, partial,
-or layout rendering when the redirect depends on render-time logic.
+MiniFW always creates the final `<!DOCTYPE html>`, `<html>`, `<head>`, and
+`<body>`. If no layouts match, the page is placed directly inside `<body>`.
+Within an unchanged layout chain, boosted navigation swaps only the innermost
+layout target. Moving between chains triggers an `HX-Redirect` full navigation.
 
-Native routes do not receive MiniFW layout wrapping, HTML minification, request
-context, cache behavior, or scoped styles. Use them for health checks, assets,
-webhooks, and other endpoints that should stay entirely under Bun's control.
+## Document Configuration
 
-## Layouts And Pages
-
-Set `layout` to apply a shared document shell to MiniFW pages. If you omit it,
-MiniFW uses a default layout equivalent to `<main>${page}</main>`.
-
-On an initial request, a page response includes the full layout. The generated
-body enables HX-Boost, so later same-origin navigations carry
-`HX-Request: true`. For those requests, MiniFW skips the layout and returns only
-the next page's markup, setting `HX-Retarget` to the layout's `pageTarget`
-(`main` by default).
-
-See [layout()](/docs/core/layout) for layout overloads, HTMX options, and a full
-request/response lifecycle explanation.
-
-## Partials
-
-Register a [partial()](/docs/core/partial) under `partials` to serve it at
-`/partial/<name>`:
+`config` controls the generated document and browser-level behavior:
 
 ```ts
-const server = mini({
-  partials: {
-    notification: partial(() => "<p>Saved</p>"),
+mini({
+  config: {
+    document: {
+      htmlAttributes: { lang: "en", dir: "ltr" },
+      bodyAttributes: { class: "app", "data-theme": "light" },
+      head: () => '<link rel="icon" href="/favicon.svg">',
+    },
+    htmx: { type: "cdn", version: "4.0.0" },
+    runtime: true,
+    globalStyles: [Bun.file("./tokens.css"), Bun.file("./app.css")],
+    scripts: () => "console.info('Application loaded')",
   },
 });
 ```
 
-Partials receive MiniFW request context and reject non-HTMX requests by default.
-Their output is minified and can include scoped styles. See
-[partial()](/docs/core/partial) for the `allowNonHtmx`, style, and cache
-options.
+`document.head` appends arbitrary application-level tags while `page({ head })`
+provides route metadata such as title, description, canonical URL, and robots.
+MiniFW includes HTMX 4 and its scoped-style runtime by default. Set
+`config.htmx: false` to omit HTMX, or `config.runtime: false` only when the
+application manages scoped styles from HTMX responses itself.
 
-## Global Assets
-
-`globalStyles` and `scripts` add application-wide assets to full-page responses.
-Each accepts one loader, one `Bun.file(...)`, or an array containing either.
-
-```ts
-const server = mini({
-  globalStyles: [Bun.file("./tokens.css"), Bun.file("./app.css")],
-  scripts: () => "console.info('Application loaded')",
-});
-```
-
-Style files are bundled so CSS imports resolve, then minified. Script entries
-are built and minified before MiniFW inserts them into the document head. These
-assets are omitted from partial and boosted page responses because the initial
-layout response has already loaded them.
+Global styles are bundled and minified; global scripts are built and minified.
+They appear only in full-page documents because those assets persist across
+boosted page navigation.
 
 ## Error Handling
 
-`mini()` does not replace Bun's `error` option. Errors thrown by a
-[page()](/docs/core/page) or [partial()](/docs/core/partial) propagate to Bun's
-handler, including errors raised with [error()](/docs/helpers/error).
-
-Use [isMiniError()](/docs/helpers/is-mini-error) to distinguish MiniFW HTTP
-errors from unexpected exceptions:
+`mini()` preserves Bun's `error` option. Errors thrown by a page or partial,
+including [error()](/docs/helpers/error), propagate to Bun's handler. Use
+[isMiniError()](/docs/helpers/is-mini-error) to distinguish expected MiniFW HTTP
+errors from unexpected exceptions.
 
 ```ts
-const server = mini({
+mini({
   error(caught) {
     if (isMiniError(caught)) {
       return new Response(caught.message, { status: caught.status });
     }
 
-    console.error(caught);
     return new Response("Internal Server Error", { status: 500 });
   },
 });
 ```
 
-Intentional [redirectTo()](/docs/helpers/redirect-to) calls return a redirect
-response directly and do not enter Bun's error handler.
-
-## Operational Notes
-
-`mini()` is Bun-only and requires Bun `1.4` or later. It starts listening as
-soon as it returns. Use Bun's `fetch` option for unmatched requests and custom
-fallback responses; use native route entries when a path should bypass MiniFW.
-
-For an application overview, return to [Getting Started](/docs/getting-started).
-For generated output details, see [Minification](/docs/extra/minification) and
+For generated output details, see [Minification](/docs/extra/minification),
+[Style Encapsulation](/docs/extra/style-encapsulation), and
 [Runtime](/docs/extra/runtime).

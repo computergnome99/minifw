@@ -2,7 +2,8 @@ import { layout, mini, redirect } from "../lib/core";
 import { html, isMiniError } from "../lib/helpers";
 import { logo } from "./assets/logo";
 import { navigation } from "./partials/navigation";
-import { documentation } from "./pages/documentation";
+import { documentation, documentationTree } from "./pages/documentation";
+import { treeviewStyles } from "./partials/treeview";
 import { home } from "./pages/home";
 
 const pageLayout = layout(
@@ -13,19 +14,37 @@ const pageLayout = layout(
       hx-swap="outerHTML"
       style="height: 48px;"
     ></div>
-    <main style="scroll-margin-top: 48px">${page}</main>
+    <main id="app-page" style="scroll-margin-top: 48px">${page}</main>
   `,
-  () => html`
-    <script
-      src="https://kit.fontawesome.com/a80ebe0155.js"
-      crossorigin="anonymous"
-    ></script>
+  { pageTarget: "#app-page" },
+);
+
+const documentationLayout = layout(
+  ({ page }) => html`
+    ${documentationTree()}
+    <section id="docs-page" style="scroll-margin-top: 48px">${page}</section>
   `,
+  { pageTarget: "#docs-page" },
 );
 
 const server = mini({
   port: Number(process.env["DOCS_PORT"] ?? 3000),
-  layout: pageLayout,
+  layouts: { "*": pageLayout, "/docs/*": documentationLayout },
+  config: {
+    document: {
+      htmlAttributes: { lang: "en" },
+      head: () => html`
+        <script
+          src="https://kit.fontawesome.com/a80ebe0155.js"
+          crossorigin="anonymous"
+        ></script>
+      `,
+    },
+    globalStyles: [
+      Bun.file(new URL("styles/main.css", import.meta.url)),
+      () => treeviewStyles,
+    ],
+  },
   routes: {
     "/": home,
     "/docs": redirect("/docs/getting-started"),
@@ -35,7 +54,6 @@ const server = mini({
   partials: {
     navigation,
   },
-  globalStyles: Bun.file(new URL("styles/main.css", import.meta.url)),
   error(error) {
     if (isMiniError(error)) {
       console.error("Mini Error:", error.status, error.message);

@@ -32,8 +32,8 @@ this to nested CSS selectors as well as ordinary rules.
 
 ## Response Placement
 
-For full-page responses, [layout()](/docs/core/layout) extracts scoped style
-blocks from page markup and places them in the document head. A
+For full-page responses, [mini()](/docs/core/mini) extracts scoped style blocks
+from composed page markup and places them in the document head. A
 [partial()](/docs/core/partial) or HTMX page response includes its scoped style
 alongside the returned markup.
 

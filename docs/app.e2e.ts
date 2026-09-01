@@ -1,5 +1,6 @@
 /* eslint-disable unicorn/no-top-level-assignment-in-function */
 import { afterAll, beforeAll, expect, test } from "bun:test";
+import { captureScreenshot } from "../examples/capture-screenshot";
 import { createWebView } from "../examples/create-webview";
 
 let server: ReturnType<typeof Bun.spawn> | undefined;
@@ -66,6 +67,35 @@ test("documentation navigation uses static native disclosures", async () => {
       "document.querySelector('[data-docs-tree] details')?.hasAttribute('open')",
     )) as boolean | undefined,
   ).toBe(true);
+
+  await view.evaluate(
+    "document.querySelector('[data-docs-tree]')?.setAttribute('data-instance', 'initial')",
+  );
+  const settle = view.evaluate(
+    "new Promise((resolve) => document.body.addEventListener('htmx:after:settle', () => { if (location.pathname === '/docs/core/page') resolve(null) }))",
+  );
+  await view.click('[data-docs-tree] a[href="/docs/core/page"]');
+  await settle;
+
+  expect((await view.evaluate("location.pathname")) as string).toBe(
+    "/docs/core/page",
+  );
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-tree]')?.getAttribute('data-instance')",
+    )) as string | undefined,
+  ).toBe("initial");
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-tree] details')?.hasAttribute('open')",
+    )) as boolean | undefined,
+  ).toBe(true);
+  expect(
+    (await view.evaluate(
+      "document.querySelector('#docs-page h1')?.textContent",
+    )) as string | undefined,
+  ).toBe("page()");
+  await captureScreenshot(view, "docs", "nested-layout-navigation");
 
   expect(
     (await view.evaluate(

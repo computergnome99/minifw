@@ -3,6 +3,7 @@
  *
  * @module
  */
+export * from "./config";
 export * from "./fragment";
 export * from "./layout";
 export * from "./mini";

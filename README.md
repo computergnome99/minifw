@@ -80,8 +80,8 @@ mini({
 ```
 
 `mini()` creates and returns a `Bun.Server`. Its options include Bun's standard
-server options such as `port`, plus `routes`, `partials`, `layout`,
-`globalStyles`, and `scripts`.
+server options such as `port`, plus `routes`, `partials`, `layouts`, and
+document/browser configuration through `config`.
 
 > [!NOTE]
 >
@@ -112,14 +112,16 @@ mini({
       ({ params }) => html`<h1>Product ${params["id"]}</h1>`,
     ),
   },
-  globalStyles: Bun.file("./app.css"),
-  scripts: () => "console.log('MiniFW started')",
+  config: {
+    globalStyles: Bun.file("./app.css"),
+    scripts: () => "console.log('MiniFW started')",
+  },
 });
 ```
 
-`globalStyles` accepts a loader, `Bun.file(...)`, or an array of either. MiniFW
-bundles imported CSS before injecting it into full-page responses. `scripts`
-accepts the same forms for JavaScript or TypeScript source.
+`config.globalStyles` accepts a loader, `Bun.file(...)`, or an array of either.
+MiniFW bundles imported CSS before injecting it into full-page responses.
+`config.scripts` accepts the same forms for JavaScript or TypeScript source.
 
 Routes can also use native `Bun.serve()` route entries directly. Use
 `redirect()` for a static redirect response:
@@ -207,24 +209,36 @@ Like pages, partials support the style-function overload and cache options.
 
 ### `layout()`
 
-`layout(body, options?)` wraps every full-page response in a document. It
-creates the document shell, includes title and metadata from `page()` options,
-loads HTMX, and enables boosted navigation.
+`layout(body, options?)` creates a route shell around nested page content.
+Register layouts by route pattern through `mini({ layouts })`; MiniFW itself
+always creates the document shell, including `<html>`, `<head>`, and `<body>`.
 
 ```ts
 import { layout } from "@calvinbonner/minifw/core";
 import { html } from "@calvinbonner/minifw/helpers";
 
-const appLayout = layout(({ page }) => html`<main class="app">${page}</main>`, {
-  htmx: { type: "cdn", version: "4.0.0" },
-  bodyArguments: { class: "app-body" },
+const appLayout = layout(
+  ({ page }) => html`<main id="app-page" class="app">${page}</main>`,
+  { pageTarget: "#app-page" },
+);
+
+mini({
+  layouts: { "*": appLayout },
+  config: {
+    document: {
+      htmlAttributes: { lang: "en" },
+      bodyAttributes: { class: "app-body" },
+    },
+    htmx: { type: "cdn", version: "4.0.0" },
+  },
 });
 ```
 
-Omit `htmx` to use MiniFW's pinned HTMX `4.0.0` default. The generated body uses
-both HTMX 1/2 and HTMX 4 boost declarations, so descendant links remain boosted
-across supported HTMX versions. Pass `disableRuntime: true` only when the
-client-side scoped-style promotion runtime is not needed.
+Omit `config.htmx` to use MiniFW's HTMX `4.0.0` default. Set
+`config.runtime: false` only when the client-side scoped-style promotion runtime
+is not needed. Nested route layouts preserve their outer markup during
+compatible boosted navigation; MiniFW triggers a full navigation when the layout
+chain changes.
 
 ### `fragment()`
 

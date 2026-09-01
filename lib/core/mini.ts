@@ -1,12 +1,11 @@
-import { html } from "../helpers";
+import { buildDocument } from "../internal/layout/build-document";
 import {
   buildPages,
   buildPartials,
   createGlobalStylesLoader,
   createScriptsLoader,
 } from "../internal/mini/index";
-import type { MiniGlobalStyles, MiniScripts } from "../internal/mini/index";
-import { layout as createLayout } from "./layout";
+import type { MiniConfig } from "./config";
 import type { MiniLayout } from "./layout";
 import type { MiniPage } from "./page";
 import type { MiniPartial } from "./partial";
@@ -30,8 +29,10 @@ export interface MiniOptions extends Omit<
   Bun.Serve.Options<undefined>,
   "routes"
 > {
-  /** Optional {@link MiniLayout} to wrap every page response. */
-  layout?: MiniLayout;
+  /** Document and browser behavior managed by MiniFW. */
+  config?: MiniConfig;
+  /** Route patterns mapped to composable layout shells. */
+  layouts?: Record<string, MiniLayout>;
   /**
    * Map of URL path patterns to {@link MiniPage} instances or native Bun route
    * entries. Native entries are passed directly to {@link Bun.serve}.
@@ -42,32 +43,14 @@ export interface MiniOptions extends Omit<
    * served at `/partial/<name>`.
    */
   partials?: Record<string, MiniPartial>;
-  /**
-   * Global styles injected in `<head>` for full-page responses.
-   *
-   * Accepts a loader function (which returns CSS) or `Bun.file(...)` entries.
-   * `Bun.file` entries are bundled via `Bun.build()` so imports are resolved
-   * before final CSS minification.
-   */
-  globalStyles?: MiniGlobalStyles;
-  /**
-   * Global scripts injected in `<head>` for full-page responses.
-   *
-   * Accepts loader functions returning JS/TS source or `Bun.file(...)` entries.
-   * All entries are built and minified via `Bun.build()` before injection.
-   */
-  scripts?: MiniScripts;
 }
-
-/** Default HTML shell used when no custom layout is provided. */
-const defaultLayout = createLayout(({ page }) => html`<main>${page}</main>`);
 
 /**
  * Start a MiniFW server.
  *
  * @example
  *   const server = mini({
- *     layout: rootLayout,
+ *     layouts: { "*": rootLayout },
  *     routes: {
  *       "/": home,
  *       "/about": about,
@@ -77,21 +60,20 @@ const defaultLayout = createLayout(({ page }) => html`<main>${page}</main>`);
  *     },
  *   });
  *
- * @param options Server configuration including routes, partials, and layout.
+ * @param options Server configuration including routes, partials, layouts, and
+ *   document config.
  * @returns A running {@link Bun.Server} instance.
  */
 export function mini(options: MiniOptions): Bun.Server<undefined> {
   const {
-    layout,
+    config,
+    layouts = {},
     routes = {},
     partials = {},
-    globalStyles,
-    scripts,
     ...bunOptions
   } = options;
-  const resolvedLayout = layout ?? defaultLayout;
-  const loadGlobalStyles = createGlobalStylesLoader(globalStyles);
-  const loadScripts = createScriptsLoader(scripts);
+  const loadGlobalStyles = createGlobalStylesLoader(config?.globalStyles);
+  const loadScripts = createScriptsLoader(config?.scripts);
 
   const pages: Record<string, MiniPage> = {};
   const nativeRoutes: BunRoutes = {};
@@ -104,13 +86,16 @@ export function mini(options: MiniOptions): Bun.Server<undefined> {
   const bunRoutes: BunRoutes = {
     ...nativeRoutes,
     ...buildPages(pages, {
-      ...resolvedLayout,
-      render: async (arguments_) =>
-        resolvedLayout.render({
-          ...arguments_,
-          globalStylesCss: await loadGlobalStyles(),
-          globalScripts: await loadScripts(),
-        }),
+      layouts,
+      renderDocument: async (arguments_) =>
+        buildDocument(
+          {
+            ...arguments_,
+            globalStylesCss: await loadGlobalStyles(),
+            globalScripts: await loadScripts(),
+          },
+          config,
+        ),
     }),
     ...buildPartials(partials),
   };
