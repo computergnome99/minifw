@@ -1,0 +1,7 @@
+*,
+*::before,
+*::after {
+  transition-duration: 0.15s;
+  transition-property: none;
+  transition-timing-function: ease-out;
+}

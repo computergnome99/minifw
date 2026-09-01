@@ -1,0 +1,11 @@
+@property --brand {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #40a02b;
+}
+
+@property --brand-alt {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #179299;
+}

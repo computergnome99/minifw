@@ -1,0 +1,257 @@
+body {
+  background-image: linear-gradient(
+    -45deg,
+    rgb(from var(--brand) r g b / 0.15) 0%,
+    transparent 50%
+  );
+  background-position: 100% 100%;
+  background-size: cover;
+  background-attachment: fixed;
+  color: #1f241d;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-family: "Courier New", Courier, monospace;
+}
+
+:where(main) {
+  padding-block: 2rem 4rem;
+}
+
+:where(main > *) {
+  margin-block: 1rem;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  color: #15210f;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 {
+  margin-block-start: 2rem;
+  font-size: 2rem;
+}
+
+h2 {
+  margin-block-start: 2.5rem;
+  border-block-end: 1px solid currentColor;
+  padding-block-end: 0.25rem;
+  font-size: 1.5rem;
+}
+
+h3 {
+  margin-block-start: 2rem;
+  font-size: 1.25rem;
+}
+
+:where(h4, h5, h6) {
+  margin-block-start: 1.5rem;
+  font-size: 1rem;
+}
+
+:where(p, ul, ol, dl, blockquote, pre, table, figure, hr) {
+  margin-block: 1rem;
+}
+
+:where(ul, ol) {
+  padding-inline-start: 2ch;
+}
+
+ul {
+  list-style: square;
+}
+
+ol {
+  list-style: decimal;
+}
+
+:where(li + li) {
+  margin-block-start: 0.25rem;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+}
+
+dt {
+  font-weight: 700;
+}
+
+dd {
+  grid-column: 2;
+}
+
+:where(code, kbd, samp) {
+  outline: 1px solid var(--brand);
+  background-color: rgb(from var(--brand) r g b / 0.12);
+  padding-inline: 0.5ch;
+  font: inherit;
+}
+
+pre,
+blockquote,
+aside {
+  border-top-width: 2px;
+  border-right-width: 4px;
+  border-bottom-width: 4px;
+  border-left-width: 2px;
+  border-style: solid;
+
+  --corner: 0.2rem;
+
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--corner)) 0,
+    100% var(--corner),
+    100% 100%,
+    var(--corner) 100%,
+    0 calc(100% - var(--corner))
+  );
+}
+
+blockquote {
+  border-color: #707070;
+  padding-left: 1rem;
+}
+
+pre {
+  border-color: var(--brand);
+  background-color: rgb(from var(--brand) r g b / 0.08);
+  padding: 1rem;
+  overflow-x: auto;
+  tab-size: 2;
+}
+
+pre code {
+  outline: 0;
+  background-color: transparent;
+  padding: 0;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #697064;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-type {
+  color: #9d174d;
+}
+
+.hljs-string,
+.hljs-number,
+.hljs-literal {
+  color: #0f766e;
+}
+
+.hljs-title,
+.hljs-function,
+.hljs-attribute {
+  color: #9a3412;
+}
+
+kbd {
+  border: 1px solid currentColor;
+}
+
+input[type="checkbox"] {
+  appearance: auto;
+  margin-inline-end: 0.5ch;
+  accent-color: var(--brand);
+}
+
+.callout {
+  --color: var(--brand);
+  --icon: "\f05a";
+
+  border-color: var(--color);
+  background-color: rgb(from var(--color) r g b / 0.08);
+  padding: 0.75rem 1rem;
+}
+
+.callout > .title {
+  display: block;
+  color: hsl(from var(--color) h s 20%);
+
+  &::before {
+    display: inline-block;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    margin-right: 1ch;
+    content: var(--icon, "\f05a");
+    font: var(--fa-font-regular);
+  }
+}
+
+.callout-tip {
+  --color: var(--brand-alt);
+  --icon: "\f05a";
+}
+
+.callout-warning {
+  --color: #fe640b;
+  --icon: "\f071";
+}
+
+.callout-danger {
+  --color: #e64553;
+  --icon: "\f2d3";
+}
+
+.callout > :last-child {
+  margin-block-end: 0;
+}
+
+hr {
+  border-block-start: 1px dashed currentColor;
+}
+
+:where(table) {
+  display: block;
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
+:where(th, td) {
+  border: 1px solid #8c9587;
+  padding: 0.375rem 0.625rem;
+  text-align: start;
+}
+
+th {
+  background-color: rgb(from var(--brand) r g b / 0.12);
+  font-weight: 700;
+}
+
+:where(img) {
+  block-size: auto;
+}
+
+figcaption {
+  margin-block-start: 0.5rem;
+  color: #4a5147;
+  font-size: 0.875rem;
+}
+
+a {
+  transition-property: color;
+  color: var(--brand);
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--brand-alt);
+  }
+
+  &[href^="http"]::after {
+    display: inline-block;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    vertical-align: super;
+    content: "\f08e";
+    font: var(--fa-font-regular);
+    font-size: 0.5em;
+  }
+}

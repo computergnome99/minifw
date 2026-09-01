@@ -1,0 +1,6 @@
+main {
+  /* display: grid;
+  gap: 0.25rem; */
+  margin: 0 auto;
+  width: min(calc(100dvw - 2rem), 720px);
+}
