@@ -1,6 +1,11 @@
 main {
-  /* display: grid;
-  gap: 0.25rem; */
+  display: grid;
   margin: 0 auto;
   width: min(calc(100dvw - 2rem), 720px);
+
+  &:has(> [data-docs-tree]) {
+    grid-template-columns: 240px min(calc(100dvw - 2rem), 720px) 240px;
+    gap: 1rem;
+    width: calc(240px * 2 + min(calc(100dvw - 2rem), 720px) + 2rem);
+  }
 }

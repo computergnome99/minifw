@@ -30,7 +30,7 @@ afterAll(async () => {
   await server?.exited;
 });
 
-test("documentation treeview supports keyboard navigation and HTMX expansion", async () => {
+test("documentation navigation uses static native disclosures", async () => {
   await using view = createWebView();
   await view.navigate(`${baseUrl}/docs`);
 
@@ -49,76 +49,27 @@ test("documentation treeview supports keyboard navigation and HTMX expansion", a
   ).toBe("Documentation sections");
   expect(
     (await view.evaluate(
-      "document.querySelectorAll('[data-docs-tree] [role=treeitem][tabindex=\"0\"]').length",
+      "document.querySelectorAll('[data-docs-tree] details > summary').length",
     )) as number,
-  ).toBe(1);
-  await view.evaluate(
-    "document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowDown' }))",
-  );
-
-  await view.evaluate(
-    "document.querySelector('[data-docs-tree] [role=treeitem]')?.focus()",
-  );
-  await view.evaluate(
-    "document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowDown' }))",
-  );
-
+  ).toBe(3);
   expect(
-    (await view.evaluate("document.activeElement?.textContent?.trim()")) as
-      | string
-      | undefined,
-  ).toBe("Formatting");
-
+    (await view.evaluate(
+      "getComputedStyle(document.querySelector('[data-docs-tree] summary')).display",
+    )) as string,
+  ).toBe("list-item");
   await view.evaluate(
-    "document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }))",
+    "document.querySelector('[data-docs-tree] summary')?.click()",
   );
-
-  for (let attempt = 0; attempt < 50; attempt += 1) {
-    const expanded = await view.evaluate(
-      "document.querySelector('[data-docs-tree] [aria-expanded]')?.getAttribute('aria-expanded')",
-    );
-    if (expanded === "true") break;
-    await Bun.sleep(100);
-  }
 
   expect(
     (await view.evaluate(
-      "document.querySelector('[data-docs-tree] [aria-expanded]')?.getAttribute('aria-expanded')",
-    )) as string | undefined,
-  ).toBe("true");
-  expect(
-    (await view.evaluate("document.activeElement?.textContent?.trim()")) as
-      | string
-      | undefined,
-  ).toBe("Formatting");
-
-  await view.evaluate(
-    "document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }))",
-  );
+      "document.querySelector('[data-docs-tree] details')?.hasAttribute('open')",
+    )) as boolean | undefined,
+  ).toBe(true);
 
   expect(
-    (await view.evaluate("document.activeElement?.textContent?.trim()")) as
-      | string
-      | undefined,
-  ).toBe("Text formatting");
-  await view.evaluate(
-    "document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowLeft' }))",
-  );
-  await view.evaluate(
-    "document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowLeft' }))",
-  );
-
-  for (let attempt = 0; attempt < 50; attempt += 1) {
-    const expanded = await view.evaluate(
-      "document.querySelector('[data-docs-tree] [aria-expanded]')?.getAttribute('aria-expanded')",
-    );
-    if (expanded === "false") break;
-    await Bun.sleep(100);
-  }
-
-  expect(
-    (await view.evaluate("document.activeElement?.textContent?.trim()")) as
-      | string
-      | undefined,
-  ).toBe("Formatting");
+    (await view.evaluate(
+      "document.querySelector('[data-docs-tree] summary')?.hasAttribute('hx-get')",
+    )) as boolean | undefined,
+  ).toBe(false);
 }, 15_000);

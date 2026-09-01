@@ -1,48 +1,50 @@
-import { layout, mini } from "../lib/core";
-import { html } from "../lib/helpers";
+import { layout, mini, redirect } from "../lib/core";
+import { html, isMiniError } from "../lib/helpers";
 import { logo } from "./assets/logo";
-import { documentationTreeview } from "./partials/documentation-treeview";
 import { navigation } from "./partials/navigation";
 import { documentation } from "./pages/documentation";
 import { home } from "./pages/home";
 
+const pageLayout = layout(
+  ({ page }) => html`
+    <div
+      hx-get="/partial/navigation"
+      hx-trigger="load"
+      hx-swap="outerHTML"
+      style="height: 48px;"
+    ></div>
+    <main style="scroll-margin-top: 48px">${page}</main>
+  `,
+  () => html`
+    <script
+      src="https://kit.fontawesome.com/a80ebe0155.js"
+      crossorigin="anonymous"
+    ></script>
+  `,
+);
+
 const server = mini({
   port: Number(process.env["DOCS_PORT"] ?? 3000),
-  layout: layout(
-    ({ page }) => html`
-      <div
-        hx-get="/partial/navigation"
-        hx-trigger="load"
-        hx-swap="outerHTML"
-        style="height: 48px;"
-      ></div>
-      <main style="scroll-margin-top: 48px">${page}</main>
-    `,
-    () => html`
-      <script
-        src="https://kit.fontawesome.com/a80ebe0155.js"
-        crossorigin="anonymous"
-      ></script>
-    `,
-  ),
+  layout: pageLayout,
   routes: {
     "/": home,
-    "/docs": documentation,
+    "/docs": redirect("/docs/getting-started"),
+    "/docs/*": documentation,
+    "/assets/logo.svg": (request) => logo(request),
   },
   partials: {
-    documentationTreeview,
     navigation,
   },
   globalStyles: Bun.file(new URL("styles/main.css", import.meta.url)),
-  scripts: Bun.file(new URL("scripts/treeview.ts", import.meta.url)),
-  onError: (error, request) => {
-    console.error(`Failed to render ${request.method} ${request.url}`, error);
+  error(error) {
+    if (isMiniError(error)) {
+      console.error("Mini Error:", error.status, error.message);
+      return;
+    }
+
+    console.log("Unhandled error", error);
   },
-  fetch: async (request) => {
-    const url = new URL(request.url);
-
-    if (url.pathname === "/assets/logo.svg") return logo(request);
-
+  fetch: async () => {
     return new Response("Not found", { status: 404, statusText: "Not found" });
   },
 });

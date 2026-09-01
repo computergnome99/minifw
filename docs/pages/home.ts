@@ -9,9 +9,11 @@ export const home = page(
     );
 
     return html`
-      <img src="/assets/logo.svg" alt="MiniFW" height="160" />
+      <div class="content">
+        <img src="/assets/logo.svg" alt="MiniFW" height="160" />
 
-      ${body}
+        ${body}
+      </div>
     `;
   },
   () => css`
@@ -32,5 +34,6 @@ export const home = page(
       description:
         "A simple, server-side framework for building hypermedia apps quickly with HTMX.",
     },
+    cache: true,
   },
 );

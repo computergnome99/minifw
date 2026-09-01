@@ -7,6 +7,7 @@ export const navigation = partial(
       <nav>
         <a href="/">Home</a>
         <a href="/docs">Docs</a>
+        <a href="/reference">Reference</a>
       </nav>
 
       <a href="https://www.github.com/computergnome99/minifw" target="_blank">

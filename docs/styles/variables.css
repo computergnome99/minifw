@@ -1,11 +1,81 @@
-@property --brand {
+@property --rosewater {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #dc8a78;
+}
+@property --flamingo {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #dd7878;
+}
+@property --pink {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #ea76cb;
+}
+@property --mauve {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #8839ef;
+}
+@property --red {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #d20f39;
+}
+@property --maroon {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #e64553;
+}
+@property --peach {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #fe640b;
+}
+@property --yellow {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #df8e1d;
+}
+@property --green {
   syntax: "<color>";
   inherits: false;
   initial-value: #40a02b;
 }
-
-@property --brand-alt {
+@property --teal {
   syntax: "<color>";
   inherits: false;
   initial-value: #179299;
+}
+@property --sky {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #04a5e5;
+}
+@property --sapphire {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #209fb5;
+}
+@property --blue {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #1e66f5;
+}
+@property --lavender {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #7287fd;
+}
+
+@property --text {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #4c4f69;
+}
+
+:root {
+  --brand: var(--green);
+  --brand-alt: var(--teal);
 }
