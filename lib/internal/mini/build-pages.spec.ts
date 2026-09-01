@@ -18,6 +18,7 @@ describe("buildPages", () => {
     const body = await response.text();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("HX-Retarget")).toBeNull();
     expect(body).toContain("<html>");
     expect(body).toContain("<main>Hello</main>");
   });
@@ -39,8 +40,27 @@ describe("buildPages", () => {
     const body = await response.text();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("HX-Retarget")).toBe("main");
     expect(body).not.toContain("<html>");
     expect(body).toContain("<main>Hello</main>");
+  });
+
+  test("uses a configured page target for HTMX requests", async () => {
+    const routes = { "/": page(() => "<p>Hello</p>") };
+    const handlers = buildPages(
+      routes,
+      layout(({ page }) => `<section id="view">${page}</section>`, {
+        pageTarget: "#view",
+      }),
+    );
+
+    const response = await handlers["/"]!(
+      new Request("http://localhost/", {
+        headers: { "HX-Request": "true" },
+      }),
+    );
+
+    expect(response.headers.get("HX-Retarget")).toBe("#view");
   });
 
   test("handles page caching when enabled", async () => {

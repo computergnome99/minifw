@@ -36,8 +36,8 @@ describe("encapsulateStyles", () => {
 
     const { css: scopedCss } = encapsulateStyles(markup, css, route);
 
-    expect(scopedCss).toContain(`h1[${SCOPE_ATTR}="${id}"]`);
-    expect(scopedCss).toContain(`p[${SCOPE_ATTR}="${id}"]`);
+    expect(scopedCss).toContain(`h1[${SCOPE_ATTR}=${id}]`);
+    expect(scopedCss).toContain(`p[${SCOPE_ATTR}=${id}]`);
   });
 
   test("injects attribute selector into nested CSS selectors", () => {
@@ -48,8 +48,53 @@ describe("encapsulateStyles", () => {
 
     const { css: scopedCss } = encapsulateStyles(markup, css, route);
 
-    expect(scopedCss).toContain(`.card[${SCOPE_ATTR}="${id}"]`);
+    expect(scopedCss).toContain(`.card[${SCOPE_ATTR}=${id}]`);
     expect(scopedCss).toContain(".title");
+  });
+
+  test("minifies scoped CSS after rewriting nested selectors", () => {
+    const route = "/partial/navigation";
+    const id = scopeId(route);
+
+    const { css: scopedCss } = encapsulateStyles(
+      "<a></a>",
+      "a { color: red; &:hover { color: blue; } }",
+      route,
+    );
+
+    expect(scopedCss).toContain(`a[${SCOPE_ATTR}="${id}"]{color:red;`);
+    expect(scopedCss).toContain(`&:hover[${SCOPE_ATTR}="${id}"]{color:#00f}`);
+    expect(scopedCss).not.toContain("\n");
+  });
+
+  test("scopes selectors with a custom-property font shorthand", () => {
+    const route = "/partial/documentationTreeview";
+    const id = scopeId(route);
+
+    const { css: scopedCss } = encapsulateStyles(
+      "<button></button>",
+      String.raw`button::before { content: "\f0da"; font: var(--fa-font-regular); }`,
+      route,
+    );
+
+    expect(scopedCss).toContain(`button[${SCOPE_ATTR}=${id}]:before`);
+    expect(scopedCss).toContain("font:var(--fa-font-regular)");
+  });
+
+  test("does not scope keyframe step selectors", () => {
+    const route = "/animation";
+    const id = scopeId(route);
+
+    const { css: scopedCss } = encapsulateStyles(
+      "<div></div>",
+      "@keyframes fade { from { opacity: 0; } to { opacity: 1; } } div { animation: fade 1s; }",
+      route,
+    );
+
+    expect(scopedCss).toContain("0%{");
+    expect(scopedCss).toContain("to{");
+    expect(scopedCss).not.toContain(`0%[${SCOPE_ATTR}=`);
+    expect(scopedCss).toContain(`div[${SCOPE_ATTR}=${id}]`);
   });
 
   test("leaves text-only markup unchanged, still scopes CSS", () => {
@@ -65,7 +110,7 @@ describe("encapsulateStyles", () => {
     );
 
     expect(scopedMarkup).toBe("Hello world");
-    expect(scopedCss).toContain(`h1[${SCOPE_ATTR}="${id}"]`);
+    expect(scopedCss).toContain(`h1[${SCOPE_ATTR}=${id}]`);
   });
 
   test("uses route as the deterministic scoping ID", () => {

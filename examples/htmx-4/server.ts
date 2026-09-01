@@ -7,7 +7,9 @@ const loadHtmx = () =>
   ).text();
 
 const appLayout = layout(
-  ({ page: content }) => `<main id="view">${content}</main>`,
+  ({ page: content }) =>
+    html`<h1>Example MiniFW App</h1>
+      <main id="view">${content}</main>`,
   {
     htmx: { type: "local", loadFn: loadHtmx },
   },
@@ -19,7 +21,7 @@ mini({
   routes: {
     "/": page(
       () =>
-        html`<h1>HTMX 4 navigation</h1>
+        html`<h2 class="home">HTMX 4 navigation</h2>
           <a href="/about" data-about-link>About</a>`,
       () => css`
         .home {
@@ -29,7 +31,7 @@ mini({
     ),
     "/about": page(
       () =>
-        html`<h1 class="about">About HTMX 4</h1>
+        html`<h2 class="about">About HTMX 4</h2>
           <a href="/" data-home-link>Home</a>`,
       () => css`
         .about {

@@ -50,6 +50,11 @@ export type LayoutOptions = {
    */
   htmx?: MiniHtmxConfig;
   /**
+   * CSS selector for the page container swapped after boosted navigation.
+   * Defaults to `"main"`.
+   */
+  pageTarget?: string;
+  /**
    * Attributes applied to the generated `<body>` element. A `undefined` value
    * renders the attribute as boolean (no value), e.g. `{ "data-boost":
    * undefined }` → `<body data-boost>`.
@@ -69,6 +74,8 @@ export type LayoutOptions = {
  */
 export interface MiniLayout {
   render(arguments_: LayoutRenderArguments): MaybePromise<string>;
+  /** CSS selector for the page container swapped after boosted navigation. */
+  pageTarget: string;
 }
 
 export function layout(
@@ -119,5 +126,8 @@ export function layout(
     typeof headOrOptions === "function" ? headOrOptions : undefined;
   const options_ =
     typeof headOrOptions === "function" ? options : headOrOptions;
-  return { render: wrapRender(body, headFunction, options_) };
+  return {
+    render: wrapRender(body, headFunction, options_),
+    pageTarget: options_?.pageTarget ?? "main",
+  };
 }

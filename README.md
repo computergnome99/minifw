@@ -2,14 +2,9 @@
 [![NPM](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://npmjs.org/@calvinbonner/minifw)
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/computergnome99/minifw)
 
-```txt
-         _ _     _   ___  _______
-   /|  /| | |  /| | |  _|/      /
-  / | / | | | / | | | |_|  /|  /
- /  |/  | | |/  | | |  _| / | /
-/______/|_|____/|_| |_| |/  |/
-
-```
+<p align="center">
+  <img src="http://localhost:3000/assets/logo.svg" alt="MiniFW" height="160" />
+</p>
 
 # Mini Framework
 

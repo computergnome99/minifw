@@ -135,4 +135,31 @@ describe("mini integration", () => {
     expect(htmxBody).not.toContain("window.__miniIntegration=1");
     expect(htmxBody).not.toContain("body{color:red}");
   });
+
+  test("reports handled global stylesheet failures", async () => {
+    const errors: Array<{ error: unknown; request: Request }> = [];
+    const server = mini({
+      routes: {
+        "/": page(() => "<main>Assets</main>"),
+      },
+      globalStyles: () => {
+        throw new Error("Stylesheet failed to load");
+      },
+      onError: (error, request) => {
+        errors.push({ error, request });
+      },
+      port: 0,
+    });
+    servers.push(server);
+
+    const response = await fetch(localTestUrl(server, "/"));
+
+    expect(response.status).toBe(500);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]?.error).toBeInstanceOf(Error);
+    expect((errors[0]?.error as Error).message).toBe(
+      "Stylesheet failed to load",
+    );
+    expect(errors[0]?.request.url).toBe(localTestUrl(server, "/"));
+  });
 });

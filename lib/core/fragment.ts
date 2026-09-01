@@ -18,20 +18,20 @@ export type MiniFragment<Properties extends object | undefined = undefined> = (
  *   const example = fragment(() => "Hello World!");
  *
  * @example
+ *   const example = fragment(() => html`<h1>Hello World!</h1>`);
+ *
+ * @example
  *   const example = fragment<{ name: string }>(
  *     ({ name }) => `Hello ${name}!`,
  *   );
  *
- * @example
- *   const example = fragment(() => html`<h1>Hello World!</h1>`);
- *
  * @param render The render function for the fragment.
  * @returns A new {@link MiniFragment} instance.
  */
+export function fragment(render: () => MaybePromise<string>): MiniFragment;
 export function fragment<Properties extends object>(
   render: (properties: Properties) => MaybePromise<string>,
 ): MiniFragment<Properties>;
-export function fragment(render: () => MaybePromise<string>): MiniFragment;
 export function fragment<Properties extends object>(
   render:
     | ((properties: Properties) => MaybePromise<string>)

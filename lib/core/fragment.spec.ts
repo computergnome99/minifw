@@ -18,6 +18,14 @@ describe("fragment", () => {
     expect(output).toBe("Count: 3");
   });
 
+  test("renders without props", async () => {
+    const view = fragment(() => "Hello");
+
+    const output = await view();
+
+    expect(output).toBe("Hello");
+  });
+
   test("supports async render functions", async () => {
     const view = fragment(async ({ value }: { value: string }) => {
       return `Async ${value}`;

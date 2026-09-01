@@ -39,9 +39,9 @@
     "test:types": "tsc --noEmit",
     "test:e2e": "bun test ./examples/bun-routes/app.e2e.ts ./examples/express/app.e2e.ts ./examples/htmx-1/app.e2e.ts ./examples/htmx-2/app.e2e.ts ./examples/htmx-4/app.e2e.ts",
     "test:all": "bun run test:unit && bun run test:types && bun run test:e2e",
-    "docs:build": "typedoc --options typedoc.json",
-    "lint": "eslint --cache lib eslint.config.ts prettier.config.ts ; prettier --check .",
-    "lint:fix": "eslint --cache lib eslint.config.ts prettier.config.ts --fix ; prettier --write .",
+    "docs:build": "bun bin/build-documentation.ts",
+    "lint": "eslint --cache bin docs lib eslint.config.ts prettier.config.ts ; prettier --check .",
+    "lint:fix": "eslint --cache bin docs lib eslint.config.ts prettier.config.ts --fix ; prettier --write .",
     "prepare": "husky",
     "run:bun-routes": "bun examples/bun-routes/server.ts",
     "run:express": "node --import tsx examples/express/server.ts",
@@ -52,9 +52,15 @@
   "dependencies": {
     "html-minifier-terser": "^7.2",
     "lightningcss": "^1.32.0",
-    "linkedom": "^0.18.12"
+    "linkedom": "^0.18.12",
+    "postcss": "^8.5.26",
+    "postcss-selector-parser": "^7.1.5"
   },
   "devDependencies": {
+    "gray-matter": "^4.0.3",
+    "highlight.js": "^11.12.0",
+    "marked": "^18.0.11",
+    "marked-highlight": "^2.2.4",
     "@types/bun": "latest",
     "@types/express": "^5.0.6",
     "@types/html-minifier-terser": "^7.0.2",
@@ -70,6 +76,7 @@
     "husky": "^9.1.7",
     "jiti": "^2.7.0",
     "prettier": "^3",
+    "prettier-plugin-css-order": "^2.2.0",
     "prettier-plugin-jsdoc": "^1.8",
     "tsx": "^4.23.13",
     "typedoc": "^0.28.20",

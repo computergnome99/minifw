@@ -5,11 +5,18 @@ import {
   createGlobalStylesLoader,
   createScriptsLoader,
 } from "../internal/mini/index";
-import type { MiniGlobalStyles, MiniScripts } from "../internal/mini/index";
+import type {
+  MiniErrorHandler,
+  MiniGlobalStyles,
+  MiniScripts,
+} from "../internal/mini/index";
 import { layout as createLayout } from "./layout";
 import type { MiniLayout } from "./layout";
 import type { MiniPage } from "./page";
 import type { MiniPartial } from "./partial";
+
+/** Called when MiniFW handles a page or partial rendering failure. */
+export type { MiniErrorHandler } from "../internal/mini/index";
 
 /**
  * Configuration options for {@link mini}. Extends Bun's serve options with
@@ -32,6 +39,8 @@ export interface MiniOptions extends Omit<
    * served at `/partial/<name>`.
    */
   partials?: Record<string, MiniPartial>;
+  /** Called when MiniFW handles a page or partial rendering failure. */
+  onError?: MiniErrorHandler;
   /**
    * Global styles injected in `<head>` for full-page responses.
    *
@@ -75,6 +84,7 @@ export function mini(options: MiniOptions): Bun.Server<undefined> {
     layout,
     routes = {},
     partials = {},
+    onError,
     globalStyles,
     scripts,
     ...bunOptions
@@ -84,16 +94,20 @@ export function mini(options: MiniOptions): Bun.Server<undefined> {
   const loadScripts = createScriptsLoader(scripts);
 
   const bunRoutes = {
-    ...buildPages(routes, {
-      ...resolvedLayout,
-      render: async (arguments_) =>
-        resolvedLayout.render({
-          ...arguments_,
-          globalStylesCss: await loadGlobalStyles(),
-          globalScripts: await loadScripts(),
-        }),
-    }),
-    ...buildPartials(partials),
+    ...buildPages(
+      routes,
+      {
+        ...resolvedLayout,
+        render: async (arguments_) =>
+          resolvedLayout.render({
+            ...arguments_,
+            globalStylesCss: await loadGlobalStyles(),
+            globalScripts: await loadScripts(),
+          }),
+      },
+      onError,
+    ),
+    ...buildPartials(partials, onError),
   };
 
   return Bun.serve({

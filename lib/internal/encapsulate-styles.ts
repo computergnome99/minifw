@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { parseHTML } from "linkedom";
 import { transform } from "lightningcss";
-import type { SelectorComponent, SelectorList } from "lightningcss";
+import postcss from "postcss";
+import selectorParser from "postcss-selector-parser";
 
 /** Attribute name stamped on every HTML element and used in every CSS selector. */
 export const SCOPE_ATTR = "fwsc";
@@ -11,6 +12,13 @@ export const STYLE_ID_ATTR = "fwid";
 
 /** Selector for injected style tags that carry a deterministic dedupe ID. */
 export const STYLE_ID_SELECTOR = "style[fwid]";
+
+const LEGACY_PSEUDO_ELEMENTS = new Set([
+  ":after",
+  ":before",
+  ":first-letter",
+  ":first-line",
+]);
 
 /**
  * Derive a short, deterministic scope ID from a route string by hashing it with
@@ -24,61 +32,62 @@ export function scopeId(route: string): string {
 }
 
 /**
- * Inject a `[fwsc="<id>"]` component into every compound selector inside a
- * selector list. The attribute is inserted immediately before any trailing
- * pseudo-element so that `a::before` becomes `a[fwsc="x"]::before`. Nesting
- * combinators (`&`) are left alone; nested rules are processed independently by
- * the lightningcss Rule visitor.
+ * Inject a `[fwsc="<id>"]` attribute into every compound selector. The
+ * attribute is inserted immediately before a trailing pseudo-element so that
+ * `a::before` becomes `a[fwsc="x"]::before`.
  *
- * @param selectors
+ * @param selector
  * @param id
  */
-function injectIntoSelectorList(
-  selectors: SelectorList,
-  id: string,
-): SelectorList {
-  const attributeComponent: SelectorComponent = {
-    type: "attribute",
-    name: SCOPE_ATTR,
-    operation: { operator: "equal", value: id },
-  };
+function scopeSelector(selector: string, id: string): string {
+  return selectorParser((selectors) => {
+    selectors.each((selector_) => {
+      let compoundStart = 0;
 
-  return selectors.map((selector) => {
-    const result: SelectorComponent[] = [];
-    let compoundStart = 0;
+      const scopeCompound = (end: number) => {
+        const compound = selector_.nodes.slice(compoundStart, end);
+        if (compound.length === 0) return;
 
-    const flushCompound = (end: number) => {
-      const compound = selector.slice(compoundStart, end);
+        const pseudoElement = compound.findLast(
+          (node) =>
+            node.type === "pseudo" &&
+            (node.value.startsWith("::") ||
+              LEGACY_PSEUDO_ELEMENTS.has(node.value)),
+        );
+        const attribute = selectorParser.attribute({
+          attribute: SCOPE_ATTR,
+          operator: "=",
+          quoteMark: '"',
+          raws: { value: `"${id}"` },
+          value: id,
+        });
 
-      // Find the index of the first trailing pseudo-element (if any).
-      let insertAt = compound.length;
-      for (let index = compound.length - 1; index >= 0; index--) {
-        if (compound[index]!.type === "pseudo-element") {
-          insertAt = index;
+        if (pseudoElement) {
+          // eslint-disable-next-line unicorn/prefer-modern-dom-apis -- Selector parser nodes are not DOM nodes.
+          selector_.insertBefore(pseudoElement, attribute);
         } else {
-          break;
+          selector_.insertAfter(compound.at(-1)!, attribute);
         }
-      }
+      };
 
-      result.push(
-        ...compound.slice(0, insertAt),
-        attributeComponent,
-        ...compound.slice(insertAt),
-      );
-    };
+      for (const [index, node] of selector_.nodes.entries()) {
+        if (node.type !== "combinator") {
+          continue;
+        }
 
-    for (const [index, element] of selector.entries()) {
-      const component = element!;
-      if (component.type === "combinator") {
-        flushCompound(index);
-        result.push(component);
+        scopeCompound(index);
         compoundStart = index + 1;
       }
-    }
-    flushCompound(selector.length);
+      scopeCompound(selector_.nodes.length);
+    });
+  }).processSync(selector);
+}
 
-    return result;
-  });
+/** @param rule */
+function isKeyframeRule(rule: postcss.Rule): boolean {
+  return (
+    rule.parent?.type === "atrule" && rule.parent.name.endsWith("keyframes")
+  );
 }
 
 /**
@@ -91,21 +100,23 @@ function scopeCss(css: string, id: string): string {
   const { code } = transform({
     filename: "component.css",
     code: Buffer.from(css),
-    visitor: {
-      Rule: {
-        style(rule) {
-          return {
-            ...rule,
-            value: {
-              ...rule.value,
-              selectors: injectIntoSelectorList(rule.value.selectors, id),
-            },
-          };
-        },
-      },
-    },
+    minify: true,
   });
-  return Buffer.from(code).toString();
+  const root = postcss.parse(Buffer.from(code).toString());
+
+  root.walkRules((rule) => {
+    if (isKeyframeRule(rule)) return;
+    rule.selector = scopeSelector(rule.selector, id);
+  });
+
+  const scopedCss = root.toString();
+  return Buffer.from(
+    transform({
+      filename: "component.css",
+      code: Buffer.from(scopedCss),
+      minify: true,
+    }).code,
+  ).toString();
 }
 
 /**

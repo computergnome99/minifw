@@ -8,13 +8,18 @@ import {
 import { minify } from "../minify";
 import { buildContext } from "./build-context";
 import { renderErrorResponse } from "./render-error-response";
+import type { MiniErrorHandler } from "./types";
 
 /**
  * Convert Mini partial definitions into Bun route handlers.
  *
  * @param partials
+ * @param onError
  */
-export function buildPartials(partials: Record<string, MiniPartial>) {
+export function buildPartials(
+  partials: Record<string, MiniPartial>,
+  onError?: MiniErrorHandler,
+) {
   const bunRoutes: Record<string, (request: Request) => Promise<Response>> = {};
 
   for (const [name, partial] of Object.entries(partials)) {
@@ -50,6 +55,7 @@ export function buildPartials(partials: Record<string, MiniPartial>) {
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
       } catch (error) {
+        onError?.(error, request);
         return renderErrorResponse(error);
       }
     };

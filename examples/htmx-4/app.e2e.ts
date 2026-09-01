@@ -37,6 +37,11 @@ test("HTMX 4 inherits MiniFW's default boosted navigation", async () => {
       "document.body.getAttribute('hx-boost:inherited')",
     )) as string | undefined,
   ).toBe("true");
+  expect(
+    (await view.evaluate(
+      "getComputedStyle(document.querySelector('h2')).color",
+    )) as string | undefined,
+  ).toBe("rgb(0, 128, 128)");
   await captureScreenshot(view, "htmx-4", "initial");
 
   const settle = view.evaluate(
@@ -50,11 +55,26 @@ test("HTMX 4 inherits MiniFW's default boosted navigation", async () => {
     (await view.evaluate("document.querySelector('h1')?.textContent")) as
       | string
       | undefined,
+  ).toBe("Example MiniFW App");
+  expect(
+    (await view.evaluate("document.querySelector('h2')?.textContent")) as
+      | string
+      | undefined,
   ).toBe("About HTMX 4");
   expect(
     (await view.evaluate(
       "document.head.querySelectorAll('style[fwid]').length",
     )) as number,
   ).toBe(2);
+  expect(
+    (await view.evaluate(
+      "getComputedStyle(document.querySelector('h2')).color",
+    )) as string | undefined,
+  ).toBe("rgb(102, 51, 153)");
+  expect(
+    (await view.evaluate(
+      "document.body.querySelectorAll('style[fwid]').length",
+    )) as number,
+  ).toBe(0);
   await captureScreenshot(view, "htmx-4", "about");
 });

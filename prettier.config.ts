@@ -1,7 +1,7 @@
 import type { Config } from "prettier";
 
 const config: Config = {
-  plugins: ["prettier-plugin-jsdoc"],
+  plugins: ["prettier-plugin-jsdoc", "prettier-plugin-css-order"],
   semi: true,
   singleQuote: false,
   trailingComma: "all",
