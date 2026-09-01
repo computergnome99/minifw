@@ -27,6 +27,24 @@ body {
   line-height: 1.2;
 }
 
+details > summary {
+  display: block;
+
+  &::before {
+    display: inline-block;
+    transition-property: rotate;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    margin-right: 1ch;
+    content: "\f0da";
+    font: var(--fa-font-regular);
+  }
+}
+
+details[open] > summary::before {
+  rotate: 90deg;
+}
+
 h1 {
   margin-block-start: 2rem;
   font-size: 2rem;
