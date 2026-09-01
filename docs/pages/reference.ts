@@ -6,7 +6,7 @@ import {
   type DocumentationDeclaration,
   type DocumentationSignature,
 } from "../data";
-import { markdown } from "../markdown";
+import { highlightCode, markdown } from "../markdown";
 import { treeview } from "../partials/treeview";
 
 const documentationData = await loadDocumentationData();
@@ -98,7 +98,7 @@ function renderDeclaration(
       }
       ${
         declaration.type && declaration.type !== "void"
-          ? `<pre><code>${escapeHtml(declaration.type)}</code></pre>`
+          ? renderTypescript(declaration.type)
           : ""
       }
       ${declaration.signatures.map((signature) => renderSignature(declaration.name, signature)).join("")}
@@ -117,8 +117,7 @@ function renderSignature(
 
   return html`
     <section class="reference-signature">
-      <pre><code>${escapeHtml(signatureText)}</code></pre>
-      ${renderMarkdown(signature.summary)}
+      ${renderTypescript(signatureText)} ${renderMarkdown(signature.summary)}
       ${signature.parameters.some(({ summary }) => summary)
         ? `<dl>${signature.parameters
             .filter(({ summary }) => summary)
@@ -152,7 +151,7 @@ function renderDeclarationSignature(
   const declarationName = `${declaration.kind === "type-alias" ? "type" : declaration.kind} ${declaration.name}${typeParameters}`;
 
   if (declaration.members.length === 0) {
-    return `<pre><code>${escapeHtml(`${declarationName} = ${declaration.type};`)}</code></pre>`;
+    return renderTypescript(`${declarationName} = ${declaration.type};`);
   }
 
   const memberLines = declaration.members.flatMap((member) =>
@@ -166,7 +165,7 @@ function renderDeclarationSignature(
     close,
   ].join("\n");
 
-  return `<pre><code>${escapeHtml(signature)}</code></pre>`;
+  return renderTypescript(signature);
 }
 
 function renderMemberSignatures(
@@ -216,6 +215,10 @@ function renderExample(source: string): string {
   return source.trimStart().startsWith("```")
     ? renderMarkdown(source)
     : `<pre><code>${escapeHtml(source)}</code></pre>`;
+}
+
+function renderTypescript(source: string): string {
+  return `<pre><code class="language-ts">${highlightCode(source, "typescript")}</code></pre>`;
 }
 
 function escapeHtml(value: string): string {

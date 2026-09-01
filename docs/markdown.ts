@@ -13,6 +13,13 @@ type CalloutToken = Tokens.Generic & {
   variant: string;
 };
 
+/** Render source code with Highlight.js syntax markup. */
+export function highlightCode(code: string, language: string): string {
+  if (!hljs.getLanguage(language)) return escapeHtml(code);
+
+  return hljs.highlight(code, { language }).value;
+}
+
 export type MarkdownDocument = {
   attributes: Record<string, unknown>;
   html: string;
@@ -25,7 +32,7 @@ const markdownParser = new Marked(
         return hljs.highlightAuto(code).value;
       }
 
-      return hljs.highlight(code, { language }).value;
+      return highlightCode(code, language);
     },
   }),
   {
@@ -84,6 +91,16 @@ function dedent(source: string): string {
   );
 
   return lines.map((line) => line.slice(indentation)).join("\n");
+}
+
+function escapeHtml(value: string): string {
+  return value.replaceAll(/[&<>"']/g, (character) => {
+    return (
+      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[
+        character
+      ] ?? character
+    );
+  });
 }
 
 /**

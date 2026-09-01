@@ -43,7 +43,7 @@ draft: false
 > This is more of the callout.`);
 
     expect(result).toContain('<aside class="callout callout-warning">');
-    expect(result).toContain("<strong>Warning</strong>");
+    expect(result).toContain('<strong class="title">Warning</strong>');
     expect(result).toContain("<p>This is <strong>important</strong>.");
     expect(result).toContain("This is more of the callout.");
   });
@@ -54,7 +54,7 @@ draft: false
 > Use Markdown directly in a page.`);
 
     expect(result).toBe(
-      '<aside class="callout callout-example"><strong>Fast Authoring</strong><p>Use Markdown directly in a page.</p>\n</aside>',
+      '<aside class="callout callout-example"><strong class="title">Fast Authoring</strong><p>Use Markdown directly in a page.</p>\n</aside>',
     );
   });
 });

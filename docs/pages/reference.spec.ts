@@ -151,14 +151,19 @@ test("renders Typedoc modules, declarations, signatures, and members", () => {
   expect(output).toContain("@scope/example API Reference");
   expect(output).toContain("core/example");
   expect(output).toContain("function example");
+  expect(output).toContain('<span class="hljs-keyword">interface</span>');
   expect(output).toContain(
-    "interface MiniPage&lt;Data&gt; extends BasePage {\n  head?: MiniHead;\n  render(): Promise&lt;string&gt;;\n}",
+    'MiniPage</span>&lt;<span class="hljs-title class_">Data',
   );
   expect(output).toContain(
-    "class MiniError extends Error {\n  constructor(message: string): MiniError;\n}",
+    'head</span>?: <span class="hljs-title class_">MiniHead',
   );
+  expect(output).toContain('<span class="hljs-keyword">class</span>');
+  expect(output).toContain('constructor</span>(<span class="hljs-params">');
+  expect(output).toContain('class="language-ts"');
+  expect(output).toContain('example&lt;<span class="hljs-title class_">Value');
   expect(output).toContain(
-    "example&lt;Value&gt;(options?: Options&lt;Value&gt;)",
+    'options</span>?: <span class="hljs-title class_">Options',
   );
   expect(output).toContain("Deprecated:");
   expect(output).toContain("property value");
