@@ -23,4 +23,4 @@ jobs:
       - run: bun run test:all
         env:
           BUN_CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
-      - run: bunx jsr publish --provenance
+      - run: bunx jsr publish

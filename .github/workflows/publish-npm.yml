@@ -36,6 +36,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - run: |
           version="${GITHUB_REF_NAME#v}"
           notes="## Available on\n\n- [JSR](https://jsr.io/@calvinbonner/minifw@${version})\n- [npm](https://www.npmjs.com/package/@calvinbonner/minifw/v/${version})"

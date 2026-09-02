@@ -98,3 +98,7 @@ on boosted navigation.
 
 Read the full guides and API reference at
 [minifw.calvinbonner.dev](https://minifw.calvinbonner.dev).
+
+[![CI](https://github.com/computergnome99/minifw/actions/workflows/ci.yml/badge.svg)](https://github.com/computergnome99/minifw/actions/workflows/ci.yml)
+[![Publish JSR](https://github.com/computergnome99/minifw/actions/workflows/publish-jsr.yml/badge.svg)](https://github.com/computergnome99/minifw/actions/workflows/publish-jsr.yml)
+[![Publish npm](https://github.com/computergnome99/minifw/actions/workflows/publish-npm.yml/badge.svg)](https://github.com/computergnome99/minifw/actions/workflows/publish-npm.yml)
