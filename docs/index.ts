@@ -42,7 +42,7 @@ const contentLayout = (tree: MiniFragment) =>
             aria-label="Documentation Navigation"
           >
             <h1>Sections</h1>
-            <button type="button" data-docs-navigation-close autofocus>
+            <button type="button" data-docs-navigation-close>
               <span class="fa-regular fa-sharp fa-xmark"></span>
               <span class="sr-only">Close popover</span>
             </button>
