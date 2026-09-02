@@ -237,6 +237,7 @@ function titleCase(value: string): string {
 
 export const reference = page(
   async ({ params, url }) => {
+    console.log("Loaded reference page!");
     const requestedPath =
       params["*"] ?? url.pathname.slice("/reference/".length);
     const referenceModule = referenceModulesById.get(requestedPath);

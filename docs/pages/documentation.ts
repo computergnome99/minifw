@@ -83,6 +83,7 @@ async function loadDocumentationPages(): Promise<DocumentationPage[]> {
 
 export const documentation = page(
   async ({ params, url }) => {
+    console.log("Loaded documentation page!");
     const requestedPath = params["*"] ?? url.pathname.slice("/docs/".length);
     const subpage = requestedPath || "getting-started";
     const document = documentationByPath.get(subpage);

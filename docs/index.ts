@@ -97,10 +97,17 @@ const server = mini({
   error(error) {
     if (isMiniError(error)) {
       console.error("Mini Error:", error.status, error.message);
-      return;
+      return new Response(error.message, {
+        status: error.status,
+        statusText: error.message,
+      });
     }
 
-    console.log("Unhandled error", error);
+    console.error("Unhandled error", error);
+    return new Response("Internal server error", {
+      status: 500,
+      statusText: "Internal Server Error",
+    });
   },
   fetch: async () => {
     return new Response("Not found", { status: 404, statusText: "Not found" });

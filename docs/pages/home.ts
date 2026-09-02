@@ -4,6 +4,8 @@ import { markdown } from "../markdown";
 
 export const home = page(
   async () => {
+    console.log("Loaded home page!");
+
     const body = markdown(
       await Bun.file(new URL("home.md", import.meta.url)).text(),
     );
