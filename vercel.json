@@ -3,5 +3,10 @@
   "bunVersion": "1.4.x",
   "framework": "bun",
   "buildCommand": "bun run docs:build",
-  "installCommand": "bun install --frozen-lockfile"
+  "installCommand": "bun install --frozen-lockfile",
+  "functions": {
+    "server.ts": {
+      "includeFiles": "node_modules/lightningcss/**"
+    }
+  }
 }
