@@ -52,6 +52,7 @@
   "dependencies": {
     "html-minifier-terser": "^7.2",
     "lightningcss": "^1.32.0",
+    "lightningcss-linux-x64-gnu": "^1.33.0",
     "linkedom": "^0.18.12",
     "postcss": "^8.5.26",
     "postcss-selector-parser": "^7.1.5"
