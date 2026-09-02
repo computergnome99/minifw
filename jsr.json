@@ -7,12 +7,7 @@
     "./helpers": "./lib/helpers/index.ts"
   },
   "publish": {
-    "include": [
-      "LICENSE.md",
-      "README.md",
-      "SECURITY.md",
-      "lib/**/*.ts"
-    ],
+    "include": ["LICENSE.md", "README.md", "SECURITY.md", "lib/**/*.ts"],
     "exclude": [
       ".ai/**",
       ".editorconfig",
