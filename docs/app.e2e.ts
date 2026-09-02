@@ -88,8 +88,10 @@ test("serves crawler discovery files", async () => {
   expect(sitemapXml).toContain(`<lastmod>${today}</lastmod>`);
   expect(sitemapXml).toContain("<changefreq>weekly</changefreq>");
 
-  const robots = await (await fetch(`${baseUrl}/robots.txt`)).text();
-  const llms = await (await fetch(`${baseUrl}/llms.txt`)).text();
+  const robotsResponse = await fetch(`${baseUrl}/robots.txt`);
+  const robots = await robotsResponse.text();
+  const llmsResponse = await fetch(`${baseUrl}/llms.txt`);
+  const llms = await llmsResponse.text();
 
   expect(robots).toContain(
     "Sitemap: https://minifw.calvinbonner.dev/sitemap.xml",

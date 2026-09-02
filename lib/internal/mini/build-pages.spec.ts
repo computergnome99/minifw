@@ -7,6 +7,14 @@ import { html } from "../../helpers";
 const renderDocument = async ({ page: content }: { page: string }) =>
   `<document>${content}</document>`;
 
+const renderDocumentWithHead = async ({
+  head,
+  page: content,
+}: {
+  head?: { title?: string };
+  page: string;
+}) => html`<document title="${head?.title}">${content}</document>`;
+
 const layouts = {
   "*": layout(({ page: content }) => `<main id="app">${content}</main>`, {
     pageTarget: "#app",
@@ -34,13 +42,6 @@ describe("buildPages", () => {
   });
 
   test("resolves document metadata from the request context", async () => {
-    const renderDocumentWithHead = async ({
-      head,
-      page: content,
-    }: {
-      head?: { title?: string };
-      page: string;
-    }) => html`<document title="${head?.title}">${content}</document>`;
     const handlers = buildPages(
       {
         "/docs/:title": page(() => "<article>Guide</article>", {
