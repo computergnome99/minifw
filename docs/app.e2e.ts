@@ -60,6 +60,14 @@ test("serves route-specific sharing metadata", async () => {
   expect(referenceDocument).toContain(
     'content="mini API reference for MiniFW."',
   );
+
+  const adaptersResponse = await fetch(`${baseUrl}/docs/extra/server-adapters`);
+  const adaptersDocument = await adaptersResponse.text();
+
+  expect(adaptersResponse.ok).toBe(true);
+  expect(adaptersDocument).toContain("<title>MiniFW | Server Adapters</title>");
+  expect(adaptersDocument).toContain("Bun.serve()");
+  expect(adaptersDocument).toContain("Express");
 });
 
 test("serves PNG social cards", async () => {
