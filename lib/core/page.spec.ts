@@ -60,6 +60,20 @@ describe("page", () => {
     expect(output).toContain("<main>htmx</main>");
   });
 
+  test("resolves HTMX head metadata from the request context", async () => {
+    const result = page(() => "<main>htmx</main>", {
+      head: ({ params }) => ({ title: `Hello ${params["name"]}` }),
+    });
+
+    const output = await result.render({
+      ...context,
+      route: "/hello/world",
+      isHtmx: true,
+    });
+
+    expect(output).toContain("<title>Hello world</title>");
+  });
+
   test("stores cache options when provided", () => {
     const indefinite = page(renderOk, { cache: true });
     const ttl = page(renderOk, { cache: { ttl: 250 } });

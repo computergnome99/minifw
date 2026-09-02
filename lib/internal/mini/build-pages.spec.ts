@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { layout } from "../../core/layout";
 import { page } from "../../core/page";
 import { buildPages } from "./build-pages";
+import { html } from "../../helpers";
 
 const renderDocument = async ({ page: content }: { page: string }) =>
   `<document>${content}</document>`;
@@ -30,6 +31,30 @@ describe("buildPages", () => {
     expect(await response.text()).toBe(
       '<document><main id="app"><section id="docs"><article>Guide</article></section></main></document>',
     );
+  });
+
+  test("resolves document metadata from the request context", async () => {
+    const renderDocumentWithHead = async ({
+      head,
+      page: content,
+    }: {
+      head?: { title?: string };
+      page: string;
+    }) => html`<document title="${head?.title}">${content}</document>`;
+    const handlers = buildPages(
+      {
+        "/docs/:title": page(() => "<article>Guide</article>", {
+          head: ({ url }) => ({ title: url.pathname.slice("/docs/".length) }),
+        }),
+      },
+      { layouts, renderDocument: renderDocumentWithHead },
+    );
+
+    const response = await handlers["/docs/:title"]!(
+      new Request("http://localhost/docs/guide"),
+    );
+
+    expect(await response.text()).toContain('<document title="guide">');
   });
 
   test("targets the innermost layout for compatible boosted navigation", async () => {
@@ -91,7 +116,7 @@ describe("buildPages", () => {
         },
       }),
     );
-    const fromDocs = await handlers["/docs/*"]!(
+    const fromDocumentation = await handlers["/docs/*"]!(
       new Request("http://localhost/docs/guide", {
         headers: {
           "HX-Boosted": "true",
@@ -104,7 +129,7 @@ describe("buildPages", () => {
     expect(await fromApp.text()).toBe(
       '<section id="docs"><article>Guide</article></section>',
     );
-    expect(await fromDocs.text()).toBe("<article>Guide</article>");
+    expect(await fromDocumentation.text()).toBe("<article>Guide</article>");
   });
 
   test("uses a full navigation when the current URL is missing or invalid", async () => {

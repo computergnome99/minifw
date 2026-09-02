@@ -13,17 +13,30 @@ export interface MiniPage {
   render(context: MiniContext): MaybePromise<string>;
   style?(): MaybePromise<string>;
 
-  head?: MiniHead;
+  head?: MiniPageHead;
   cache?: MiniCacheOptions;
 }
 
 type PageRenderFunction = (context: MiniContext) => MaybePromise<string>;
 type PageStyleFunction = () => MaybePromise<string>;
 
+/** Static or request-specific HTML `<head>` metadata for a {@link MiniPage}. */
+export type MiniPageHead =
+  | MiniHead
+  | ((context: MiniContext) => MaybePromise<MiniHead | undefined>);
+
 type PageOptions = {
-  head?: MiniHead;
+  head?: MiniPageHead;
   cache?: MiniCacheOptions;
 };
+
+/** Resolve static or request-specific {@link MiniPageHead} metadata. */
+export async function resolvePageHead(
+  head: MiniPageHead | undefined,
+  context: MiniContext,
+): Promise<MiniHead | undefined> {
+  return typeof head === "function" ? await head(context) : head;
+}
 
 /**
  * Create a new {@link MiniPage} instance.
@@ -78,7 +91,7 @@ export function page(
       return body;
     }
 
-    const head = renderHtmxHead(options_?.head);
+    const head = renderHtmxHead(await resolvePageHead(options_?.head, context));
     return head ? `${head}\n${body}` : body;
   };
 

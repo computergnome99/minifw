@@ -14,7 +14,7 @@ previous LTS version becomes unsupported, and the new major becomes active.
 
 | Version | Status |
 | ------- | ------ |
-| 0.0.x   | Active |
+| 0.2.x   | Active |
 
 There is no LTS version before the first major release.
 

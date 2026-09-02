@@ -31,6 +31,76 @@ afterAll(async () => {
   await server?.exited;
 });
 
+test("serves route-specific sharing metadata", async () => {
+  const response = await fetch(`${baseUrl}/docs/core/page`);
+  const document = await response.text();
+
+  expect(response.ok).toBe(true);
+  expect(document).toContain("<title>MiniFW | page()</title>");
+  expect(document).toContain(
+    '<meta name="description" content="page() documentation for MiniFW.">',
+  );
+  expect(document).toContain(
+    '<meta property="og:title" content="MiniFW | page()">',
+  );
+  expect(document).toContain(
+    '<meta name="twitter:card" content="summary_large_image">',
+  );
+  expect(document).toContain(
+    "https://minifw.calvinbonner.dev/assets/social.png?title=MiniFW%20%7C%20page()",
+  );
+
+  const referenceResponse = await fetch(`${baseUrl}/reference/core/mini`);
+  const referenceDocument = await referenceResponse.text();
+
+  expect(referenceResponse.ok).toBe(true);
+  expect(referenceDocument).toContain(
+    "<title>MiniFW | mini API Reference</title>",
+  );
+  expect(referenceDocument).toContain(
+    'content="mini API reference for MiniFW."',
+  );
+});
+
+test("serves PNG social cards", async () => {
+  const response = await fetch(`${baseUrl}/assets/social.png?title=MiniFW`);
+  const image = new Uint8Array(await response.arrayBuffer());
+
+  expect(response.headers.get("Content-Type")).toBe("image/png");
+  expect(image.length).toBeGreaterThan(0);
+  expect([...image.slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+});
+
+test("serves crawler discovery files", async () => {
+  const sitemap = await fetch(`${baseUrl}/sitemap.xml`);
+  const sitemapXml = await sitemap.text();
+  const today = new Date().toISOString().slice(0, 10);
+
+  expect(sitemap.headers.get("Content-Type")).toBe(
+    "application/xml; charset=utf-8",
+  );
+  expect(sitemapXml).toContain(
+    "<loc>https://minifw.calvinbonner.dev/docs/getting-started</loc>",
+  );
+  expect(sitemapXml).toContain(
+    "<loc>https://minifw.calvinbonner.dev/reference/core/mini</loc>",
+  );
+  expect(sitemapXml).toContain(`<lastmod>${today}</lastmod>`);
+  expect(sitemapXml).toContain("<changefreq>weekly</changefreq>");
+
+  const robots = await (await fetch(`${baseUrl}/robots.txt`)).text();
+  const llms = await (await fetch(`${baseUrl}/llms.txt`)).text();
+
+  expect(robots).toContain(
+    "Sitemap: https://minifw.calvinbonner.dev/sitemap.xml",
+  );
+  expect(llms).toContain("# MiniFW");
+  expect(llms).toContain(
+    "> MiniFW is a Bun-only TypeScript framework for server-rendered hypermedia applications built with HTMX.",
+  );
+  expect(llms).toContain("## Documentation");
+});
+
 test("documentation navigation uses static native disclosures", async () => {
   await using view = createWebView();
   await view.navigate("about:blank");
@@ -123,10 +193,10 @@ test("navigation keeps the app layout while entering documentation", async () =>
   await view.navigate(`${baseUrl}/`);
 
   for (let attempt = 0; attempt < 50; attempt += 1) {
-    const hasDocsLink = await view.evaluate(
+    const hasDocumentationLink = await view.evaluate(
       "Boolean(document.querySelector('a[href=\"/docs/getting-started\"]'))",
     );
-    if (hasDocsLink) break;
+    if (hasDocumentationLink) break;
     await Bun.sleep(100);
   }
 

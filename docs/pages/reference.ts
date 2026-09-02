@@ -11,6 +11,9 @@ import { treeview } from "../partials/treeview";
 
 const documentationData = await loadDocumentationData();
 const referenceModules = documentationData.modules;
+export const referencePaths = referenceModules.map(
+  ({ id }) => `/reference/${id}`,
+);
 const referenceModulesById = new Map(
   referenceModules.map((referenceModule) => [
     referenceModule.id,
@@ -237,7 +240,6 @@ function titleCase(value: string): string {
 
 export const reference = page(
   async ({ params, url }) => {
-    console.log("Loaded reference page!");
     const requestedPath =
       params["*"] ?? url.pathname.slice("/reference/".length);
     const referenceModule = referenceModulesById.get(requestedPath);
@@ -247,9 +249,17 @@ export const reference = page(
     return renderReference(documentationData, referenceModule);
   },
   {
-    head: {
-      title: "MiniFW | API Reference",
-      description: "Generated API reference for MiniFW.",
+    head: ({ params, url }) => {
+      const requestedPath =
+        params["*"] ?? url.pathname.slice("/reference/".length);
+      const referenceModule = referenceModulesById.get(requestedPath);
+
+      return referenceModule
+        ? {
+            title: `MiniFW | ${referenceModule.name} API Reference`,
+            description: `${referenceModule.name} API reference for MiniFW.`,
+          }
+        : undefined;
     },
   },
 );

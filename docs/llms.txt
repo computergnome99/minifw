@@ -1,0 +1,15 @@
+# MiniFW
+
+> MiniFW is a Bun-only TypeScript framework for server-rendered hypermedia applications built with HTMX.
+
+MiniFW is pre-1.0 and its public API may change. Verify implementation details against the current documentation and source before recommending production use.
+
+## Documentation
+
+- [Getting Started](https://minifw.calvinbonner.dev/docs/getting-started): Installation, server setup, and the first MiniFW application.
+- [Documentation Index](https://minifw.calvinbonner.dev/docs/getting-started): Guides for core primitives, helpers, caching, minification, runtime behavior, and scoped styles.
+- [API Reference](https://minifw.calvinbonner.dev/reference/core/mini): Generated API reference for the `minifw/core` and `minifw/helpers` public subpaths.
+
+## Source
+
+- [GitHub Repository](https://github.com/computergnome99/minifw): Current source code, examples, release history, and issue tracker.

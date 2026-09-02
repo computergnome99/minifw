@@ -6,7 +6,7 @@
   "installCommand": "bun install --frozen-lockfile",
   "functions": {
     "server.ts": {
-      "includeFiles": "{docs/**,lib/**,node_modules/lightningcss/**}"
+      "includeFiles": "{docs/**,lib/**,node_modules/lightningcss/**,node_modules/@fontsource/fira-mono/**,node_modules/@resvg/resvg-wasm/**}"
     }
   }
 }

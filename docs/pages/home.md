@@ -15,6 +15,12 @@ console.log(`Mini Server is running on ${server.url}`);
 
 [Read the Docs](./docs).
 
+> [!WARNING] Heads up!
+>
+> The latest build of MiniFW (v0.2) is still **unstable**. The API may change in
+> upcoming releases until v1.0. Feel free to use the framework and share
+> feedback, but avoid using it in production.
+
 ## Zero-Build
 
 Write TypeScript, start Bun, and serve your application. MiniFW runs directly on

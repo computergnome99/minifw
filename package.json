@@ -1,6 +1,6 @@
 {
   "name": "@calvinbonner/minifw",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Calvin Bonner <me@calvinbonner.com>",
   "type": "module",
   "description": "A simple, server-side framework for building hypermedia apps quickly with HTMX.",
@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/computergnome99/minifw/issues"
   },
-  "homepage": "https://www.calvinbonner.dev/demos/minifw",
+  "homepage": "https://minifw.calvinbonner.dev",
   "keywords": [
     "htmx",
     "htmx4",
@@ -50,6 +50,8 @@
     "run:htmx-4": "bun examples/htmx-4/server.ts"
   },
   "dependencies": {
+    "@fontsource/fira-mono": "^5.3.0",
+    "@resvg/resvg-wasm": "^2.6.2",
     "html-minifier-terser": "^7.2",
     "lightningcss": "^1.32.0",
     "linkedom": "^0.18.12",

@@ -3,7 +3,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/computergnome99/minifw)
 
 <p align="center">
-  <img src="http://localhost:3000/assets/logo.svg" alt="MiniFW" height="160" />
+  <img src="https://minifw.calvinbonner.dev/assets/logo.svg" alt="MiniFW" height="160" />
 </p>
 
 # Mini Framework
@@ -65,232 +65,36 @@ yarn add @calvinbonner/minifw
 >
 > MiniFW requires Bun `1.4` or later to run the `mini()` server.
 
-## Quick Start
+## Minimal Application
 
 ```ts
-import { mini, page } from "@calvinbonner/minifw/core";
+import { layout, mini, page } from "@calvinbonner/minifw/core";
 import { html } from "@calvinbonner/minifw/helpers";
 
 mini({
   port: 3000,
-  routes: {
-    "/": page(() => html`<h1>Welcome to MiniFW</h1>`),
+  layouts: {
+    "*": layout(({ page }) => html`<main id="app">${page}</main>`, {
+      pageTarget: "#app",
+    }),
   },
-});
-```
-
-`mini()` creates and returns a `Bun.Server`. Its options include Bun's standard
-server options such as `port`, plus `routes`, `partials`, `layouts`, and
-document/browser configuration through `config`.
-
-> [!NOTE]
->
-> You do not need to use `mini()` or a Bun server. The core primitives work
-> independently and can be integrated with any JavaScript server, including
-> `Bun.serve()` and Express. `mini()` is a Bun-focused convenience wrapper that
-> wires routes, partials, layouts, global assets, and error handling together
-> for you. See the Bun routes and Express examples for custom server adapters.
-
-## Core API
-
-Import MiniFW's server primitives from `@calvinbonner/minifw/core`.
-
-### `mini()`
-
-`mini(options)` starts the server and maps pages to route patterns. A page
-request receives a full document; an HTMX request receives only the page
-fragment and its head metadata.
-
-```ts
-import { mini, page } from "@calvinbonner/minifw/core";
-import { html } from "@calvinbonner/minifw/helpers";
-
-mini({
-  port: 3000,
   routes: {
-    "/products/:id": page(
-      ({ params }) => html`<h1>Product ${params["id"]}</h1>`,
+    "/": page(
+      () => html`
+        <h1>Welcome to MiniFW</h1>
+        <p>This page is rendered on the server.</p>
+      `,
     ),
-  },
-  config: {
-    globalStyles: Bun.file("./app.css"),
-    scripts: () => "console.log('MiniFW started')",
+    "/about": page(() => html`<h1>About</h1>`),
   },
 });
 ```
 
-`config.globalStyles` accepts a loader, `Bun.file(...)`, or an array of either.
-MiniFW bundles imported CSS before injecting it into full-page responses.
-`config.scripts` accepts the same forms for JavaScript or TypeScript source.
+Run the application with `bun .`, then open `http://localhost:3000`. MiniFW
+creates the document, serves each page, and uses HTMX to swap the `#app` target
+on boosted navigation.
 
-Routes can also use native `Bun.serve()` route entries directly. Use
-`redirect()` for a static redirect response:
+## Documentation
 
-```ts
-import { mini, page, redirect } from "@calvinbonner/minifw/core";
-
-mini({
-  routes: {
-    "/": page(() => "<h1>Home</h1>"),
-    "/health": () => new Response("OK"),
-    "/docs": redirect("/docs/getting-started", 301),
-  },
-});
-```
-
-Use `redirectTo()` inside a page, partial, or layout render function to stop
-rendering and redirect the client:
-
-```ts
-import { page } from "@calvinbonner/minifw/core";
-import { redirectTo } from "@calvinbonner/minifw/helpers";
-
-const account = page(({ params }) => {
-  if (!params["userId"]) redirectTo("/login");
-
-  return "<h1>Account</h1>";
-});
-```
-
-### `page()`
-
-`page(render, options?)` creates a route handler. Use the optional style
-function overload to attach CSS scoped to that page's markup, and use `head` and
-`cache` options when needed.
-
-```ts
-import { page } from "@calvinbonner/minifw/core";
-import { html } from "@calvinbonner/minifw/helpers";
-
-const profile = page(
-  ({ params }) =>
-    html`<article class="profile"><h1>${params["name"]}</h1></article>`,
-  () => ".profile { max-width: 60ch; }",
-  {
-    head: { title: "Profile" },
-    cache: { ttl: 60_000 },
-  },
-);
-```
-
-Page styles are scoped automatically and moved into `<head>` for full-page
-responses. Cache options are `true` for an indefinite cache, `{ ttl }` for a
-millisecond TTL, or `false`/omitted to disable caching.
-
-### `partial()`
-
-`partial(render, options?)` creates an HTMX fragment endpoint. Register it in
-`mini({ partials })`; MiniFW serves it at `/partial/<name>`. Partials reject
-non-HTMX requests by default, which you can relax with `allowNonHtmx`.
-
-```ts
-import { partial } from "@calvinbonner/minifw/core";
-import { html } from "@calvinbonner/minifw/helpers";
-
-const counter = partial(
-  ({ url }) => {
-    const count = Number(url.searchParams.get("count") ?? "0") + 1;
-    return html`<section id="counter">
-      <p>Count: ${count}</p>
-      <button
-        hx-get="/partial/counter?count=${count}"
-        hx-target="#counter"
-        hx-swap="outerHTML"
-      >
-        Increment
-      </button>
-    </section>`;
-  },
-  { allowNonHtmx: true },
-);
-```
-
-Like pages, partials support the style-function overload and cache options.
-
-### `layout()`
-
-`layout(body, options?)` creates a route shell around nested page content.
-Register layouts by route pattern through `mini({ layouts })`; MiniFW itself
-always creates the document shell, including `<html>`, `<head>`, and `<body>`.
-
-```ts
-import { layout } from "@calvinbonner/minifw/core";
-import { html } from "@calvinbonner/minifw/helpers";
-
-const appLayout = layout(
-  ({ page }) => html`<main id="app-page" class="app">${page}</main>`,
-  { pageTarget: "#app-page" },
-);
-
-mini({
-  layouts: { "*": appLayout },
-  config: {
-    document: {
-      htmlAttributes: { lang: "en" },
-      bodyAttributes: { class: "app-body" },
-    },
-    htmx: { type: "cdn", version: "4.0.0" },
-  },
-});
-```
-
-Omit `config.htmx` to use MiniFW's HTMX `4.0.0` default. Set
-`config.runtime: false` only when the client-side scoped-style promotion runtime
-is not needed. Nested route layouts preserve their outer markup during
-compatible boosted navigation; MiniFW triggers a full navigation when the layout
-chain changes.
-
-### `fragment()`
-
-`fragment(render)` defines reusable markup without server context or routing.
-Use a typed fragment where reusable markup takes properties.
-
-```ts
-import { fragment } from "@calvinbonner/minifw/core";
-import { html } from "@calvinbonner/minifw/helpers";
-
-const badge = fragment<{ label: string }>(
-  ({ label }) => html`<span class="badge">${label}</span>`,
-);
-
-const markup = await badge({ label: "New" });
-```
-
-Wrap a fragment in `page()` or `partial()` when it needs to be served.
-
-## Helpers
-
-Import HTML/CSS template tags and rendering helpers from
-`@calvinbonner/minifw/helpers`.
-
-```ts
-import { css, each, html, repeat } from "@calvinbonner/minifw/helpers";
-
-const rows = each(["Ada", "Lin"], (name) => html`<li>${name}</li>`);
-const stars = repeat(3, () => "*");
-const styles = css`
-  .badge {
-    color: teal;
-  }
-`;
-```
-
-`html` and `css` return raw template strings; escape untrusted values before
-interpolating them. `error(status, message)` throws a renderable HTTP error, and
-`isHtmx(request)` checks for the `HX-Request` header.
-
-## HTMX Compatibility
-
-MiniFW defaults to HTMX `4.0.0` and has browser testbeds for HTMX `1.9.12`,
-`2.0.4`, and `4.0.0`. HTMX 4's boosted-navigation and lifecycle-event changes
-are handled by MiniFW's generated document and client runtime.
-
-## API Documentation
-
-Build the generated API reference locally:
-
-```sh
-bun run docs:build
-```
-
-Open `docs/index.html` after the command completes.
+Read the full guides and API reference at
+[minifw.calvinbonner.dev](https://minifw.calvinbonner.dev).

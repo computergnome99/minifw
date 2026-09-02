@@ -1,15 +1,22 @@
 import { layout, mini, redirect, type MiniFragment } from "../lib/core";
 import { html, isMiniError } from "../lib/helpers";
 import { logo } from "./assets/logo";
+import { socialCard } from "./assets/social-card";
 import { navigation } from "./partials/navigation";
-import { documentation, documentationTree } from "./pages/documentation";
+import {
+  documentation,
+  documentationPaths,
+  documentationTree,
+} from "./pages/documentation";
 import {
   reference,
   referenceDefaultPath,
+  referencePaths,
   referenceTree,
 } from "./pages/reference";
 import { treeviewStyles } from "./partials/treeview";
 import { home } from "./pages/home";
+import { favicon } from "./assets/favicon";
 
 const pageLayout = layout(
   ({ page }) => html`
@@ -58,6 +65,9 @@ const contentLayout = (tree: MiniFragment) =>
 
 const documentationLayout = contentLayout(documentationTree);
 const referenceLayout = contentLayout(referenceTree);
+const siteUrl = "https://minifw.calvinbonner.dev";
+const robots = Bun.file(new URL("robots.txt", import.meta.url));
+const llms = Bun.file(new URL("llms.txt", import.meta.url));
 
 const server = mini({
   port: Number(process.env["DOCS_PORT"] ?? 3000),
@@ -69,13 +79,42 @@ const server = mini({
   config: {
     document: {
       htmlAttributes: { lang: "en" },
-      head: () => html`
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script
-          src="https://kit.fontawesome.com/a80ebe0155.js"
-          crossorigin="anonymous"
-        ></script>
-      `,
+      head: ({ context, head }) => {
+        const title = head?.title ?? "MiniFW";
+        const description =
+          head?.description ??
+          "A simple, server-side framework for building hypermedia apps quickly with HTMX.";
+        const pageUrl = `${siteUrl}${context.url.pathname}${context.url.search}`;
+        const imageUrl = `${siteUrl}/assets/social.png?title=${encodeURIComponent(title)}`;
+
+        return html`
+          <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content="MiniFW" />
+          <meta property="og:title" content="${escapeAttribute(title)}" />
+          <meta
+            property="og:description"
+            content="${escapeAttribute(description)}"
+          />
+          <meta property="og:url" content="${pageUrl}" />
+          <meta property="og:image" content="${imageUrl}" />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content="${escapeAttribute(title)}" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="${escapeAttribute(title)}" />
+          <meta
+            name="twitter:description"
+            content="${escapeAttribute(description)}"
+          />
+          <meta name="twitter:image" content="${imageUrl}" />
+          <script
+            src="https://kit.fontawesome.com/a80ebe0155.js"
+            crossorigin="anonymous"
+          ></script>
+        `;
+      },
     },
     globalStyles: [
       Bun.file(new URL("styles/main.css", import.meta.url)),
@@ -90,6 +129,11 @@ const server = mini({
     "/reference": redirect(`/reference/${referenceDefaultPath}`),
     "/reference/*": reference,
     "/assets/logo.svg": (request) => logo(request),
+    "/assets/favicon.svg": (request) => favicon(request),
+    "/assets/social.png": (request) => socialCard(request),
+    "/sitemap.xml": () => sitemap(),
+    "/robots.txt": () => textFile(robots),
+    "/llms.txt": () => textFile(llms),
   },
   partials: {
     navigation,
@@ -115,3 +159,48 @@ const server = mini({
 });
 
 console.log(`Server running at ${server.url}`);
+
+function escapeAttribute(value: string): string {
+  return value.replaceAll(/[&<>"']/g, (character) => {
+    return (
+      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[
+        character
+      ] ?? character
+    );
+  });
+}
+
+function sitemap(): Response {
+  const paths = ["/", ...documentationPaths, ...referencePaths];
+  const lastModified = new Date().toISOString().slice(0, 10);
+  const urls = paths
+    .map(
+      (path) => `  <url>
+    <loc>${escapeXml(`${siteUrl}${path}`)}</loc>
+    <lastmod>${lastModified}</lastmod>
+    <changefreq>weekly</changefreq>
+  </url>`,
+    )
+    .join("\n");
+
+  return new Response(
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
+    { headers: { "Content-Type": "application/xml; charset=utf-8" } },
+  );
+}
+
+function textFile(file: Bun.BunFile): Response {
+  return new Response(file, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
+}
+
+function escapeXml(value: string): string {
+  return value.replaceAll(/[&<>"']/g, (character) => {
+    return (
+      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[
+        character
+      ] ?? character
+    );
+  });
+}

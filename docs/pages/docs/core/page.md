@@ -64,9 +64,8 @@ const profile = page(renderProfile, {
 });
 ```
 
-The configured [layout()](/docs/core/layout) creates the initial document and
-renders this metadata in its head. Do not include `<html>`, `<head>`, or
-`<body>` in page markup.
+[mini()](/docs/core/mini) creates the initial document and renders this metadata
+in its head. Do not include `<html>`, `<head>`, or `<body>` in page markup.
 
 ## Scoped Styles
 
@@ -120,11 +119,12 @@ content. See [Cache Management](/docs/extra/cache-management).
 
 ## Normal And HTMX Responses
 
-For a normal request, `mini()` renders the page and passes it to
-[layout()](/docs/core/layout), returning a full document. For an HTMX request,
-`mini()` returns page markup directly, skips the layout, and sets `HX-Retarget`
-to the layout's page target. This is what lets HX-Boost replace only the
-changing page content after the initial document is loaded.
+For a normal request, `mini()` renders the page inside all matching
+[layouts](/docs/core/layout), returning a full document. For a standard HTMX
+request, MiniFW returns page markup and targets the innermost layout's
+`pageTarget`. For boosted navigation that shares an outer layout prefix, it
+swaps only the changed inner fragment; unrelated layout chains use `HX-Redirect`
+for a full navigation.
 
 ## Redirects And Errors
 

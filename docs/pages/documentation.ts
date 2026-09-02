@@ -19,6 +19,9 @@ const groupLabels: Record<string, string> = {
 
 const documentationDirectory = `${import.meta.dir}/docs`;
 const documentationPages = await loadDocumentationPages();
+export const documentationPaths = documentationPages.map(
+  ({ path }) => `/docs/${path}`,
+);
 const documentationByPath = new Map(
   documentationPages.map((documentationPage) => [
     documentationPage.path,
@@ -83,7 +86,6 @@ async function loadDocumentationPages(): Promise<DocumentationPage[]> {
 
 export const documentation = page(
   async ({ params, url }) => {
-    console.log("Loaded documentation page!");
     const requestedPath = params["*"] ?? url.pathname.slice("/docs/".length);
     const subpage = requestedPath || "getting-started";
     const document = documentationByPath.get(subpage);
@@ -93,9 +95,17 @@ export const documentation = page(
     return html`<div class="content">${document.html}</div>`;
   },
   {
-    head: {
-      title: "MiniFW | Documentation",
-      description: "Documentation for MiniFW",
+    head: ({ params, url }) => {
+      const requestedPath = params["*"] ?? url.pathname.slice("/docs/".length);
+      const subpage = requestedPath || "getting-started";
+      const document = documentationByPath.get(subpage);
+
+      return document
+        ? {
+            title: `MiniFW | ${document.label}`,
+            description: `${document.label} documentation for MiniFW.`,
+          }
+        : undefined;
     },
   },
 );

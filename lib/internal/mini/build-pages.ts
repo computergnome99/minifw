@@ -1,5 +1,5 @@
 import type { MiniLayout } from "../../core/layout";
-import type { MiniPage } from "../../core/page";
+import { resolvePageHead, type MiniPage } from "../../core/page";
 import type { MiniContext, MiniHead } from "../../core/shared";
 import {
   normalizeCacheTtl,
@@ -100,7 +100,7 @@ export function buildPages(
             )
           : await options.renderDocument({
               context,
-              head: page.head,
+              head: await resolvePageHead(page.head, context),
               page: await composeLayouts(
                 renderedPage,
                 destinationLayouts,
