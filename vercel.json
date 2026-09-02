@@ -6,7 +6,7 @@
   "installCommand": "bun install --frozen-lockfile",
   "functions": {
     "server.ts": {
-      "includeFiles": "node_modules/lightningcss/**"
+      "includeFiles": "{docs/**,node_modules/lightningcss/**}"
     }
   }
 }
