@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { layout } from "../../core/layout";
 import type { MiniContext } from "../../core/shared";
-import { composeLayouts, isSameLayoutChain, resolveLayouts } from "./layouts";
+import {
+  composeLayouts,
+  isSameLayoutChain,
+  resolveLayouts,
+  sharedLayoutPrefixLength,
+} from "./layouts";
 
 const context: MiniContext = {
   request: new Request("http://localhost/admin/example/report"),
@@ -62,5 +67,26 @@ describe("mini/layouts", () => {
         resolveLayouts(layouts, "/admin/other"),
       ),
     ).toBe(false);
+  });
+
+  test("counts shared outer layouts", () => {
+    expect(
+      sharedLayoutPrefixLength(
+        resolveLayouts(layouts, "/"),
+        resolveLayouts(layouts, "/admin/example/report"),
+      ),
+    ).toBe(1);
+    expect(
+      sharedLayoutPrefixLength(
+        resolveLayouts(layouts, "/admin/one"),
+        resolveLayouts(layouts, "/admin/example/report"),
+      ),
+    ).toBe(2);
+    expect(
+      sharedLayoutPrefixLength(
+        resolveLayouts(layouts, "/admin/example/one"),
+        resolveLayouts(layouts, "/admin/example/two"),
+      ),
+    ).toBe(3);
   });
 });

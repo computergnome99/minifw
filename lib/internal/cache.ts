@@ -71,13 +71,18 @@ export function stableParameters(parameters: Record<string, string>): string {
  * @param path
  * @param context
  */
-export function pageCacheKey(path: string, context: MiniContext): string {
+export function pageCacheKey(
+  path: string,
+  context: MiniContext,
+  layoutPrefixLength?: number,
+): string {
   return [
     "page",
     path,
     context.url.pathname,
     context.url.search,
     String(context.isHtmx),
+    String(layoutPrefixLength),
     stableParameters(context.params),
   ].join("|");
 }

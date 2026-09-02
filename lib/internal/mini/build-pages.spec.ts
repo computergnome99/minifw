@@ -53,7 +53,7 @@ describe("buildPages", () => {
     expect(await response.text()).toBe("<article>Guide</article>");
   });
 
-  test("uses a full navigation when boosted layout chains differ", async () => {
+  test("preserves shared layouts when boosted layout chains differ", async () => {
     const handlers = buildPages(
       { "/docs/*": page(() => "<article>Guide</article>") },
       { layouts, renderDocument },
@@ -69,8 +69,42 @@ describe("buildPages", () => {
       }),
     );
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("HX-Redirect")).toBe("/docs/guide?tab=api");
+    expect(response.headers.get("HX-Redirect")).toBeNull();
+    expect(response.headers.get("HX-Retarget")).toBe("#app");
+    expect(await response.text()).toBe(
+      '<section id="docs"><article>Guide</article></section>',
+    );
+  });
+
+  test("separates cached responses by their shared layout prefix", async () => {
+    const handlers = buildPages(
+      { "/docs/*": page(() => "<article>Guide</article>", { cache: true }) },
+      { layouts, renderDocument },
+    );
+
+    const fromApp = await handlers["/docs/*"]!(
+      new Request("http://localhost/docs/guide", {
+        headers: {
+          "HX-Boosted": "true",
+          "HX-Current-URL": "http://localhost/",
+          "HX-Request": "true",
+        },
+      }),
+    );
+    const fromDocs = await handlers["/docs/*"]!(
+      new Request("http://localhost/docs/guide", {
+        headers: {
+          "HX-Boosted": "true",
+          "HX-Current-URL": "http://localhost/docs/other",
+          "HX-Request": "true",
+        },
+      }),
+    );
+
+    expect(await fromApp.text()).toBe(
+      '<section id="docs"><article>Guide</article></section>',
+    );
+    expect(await fromDocs.text()).toBe("<article>Guide</article>");
   });
 
   test("uses a full navigation when the current URL is missing or invalid", async () => {

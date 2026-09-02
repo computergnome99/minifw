@@ -10,7 +10,11 @@ import {
 import { minify } from "../minify";
 import { isMiniRedirect } from "../../helpers/redirect-to";
 import { buildContext } from "./build-context";
-import { composeLayouts, isSameLayoutChain, resolveLayouts } from "./layouts";
+import {
+  composeLayouts,
+  resolveLayouts,
+  sharedLayoutPrefixLength,
+} from "./layouts";
 
 type BuildPagesOptions = {
   layouts: Record<string, MiniLayout>;
@@ -49,28 +53,33 @@ export function buildPages(
           }),
         };
 
-        if (
-          context.isHtmx &&
-          request.headers.get("HX-Boosted") === "true" &&
-          !hasCompatibleCurrentLayouts(
-            request,
-            destinationLayouts,
-            options.layouts,
-          )
-        ) {
-          return new Response(undefined, {
-            headers: {
-              "Content-Type": "text/html; charset=utf-8",
-              "HX-Redirect": `${context.url.pathname}${context.url.search}`,
-            },
-          });
+        const sharedLayoutCount = getSharedCurrentLayoutCount(
+          request,
+          destinationLayouts,
+          options.layouts,
+        );
+        if (context.isHtmx && request.headers.get("HX-Boosted") === "true") {
+          if (sharedLayoutCount === undefined || sharedLayoutCount === 0) {
+            return new Response(undefined, {
+              headers: {
+                "Content-Type": "text/html; charset=utf-8",
+                "HX-Redirect": `${context.url.pathname}${context.url.search}`,
+              },
+            });
+          }
+
+          if (sharedLayoutCount < destinationLayouts.length) {
+            headers["HX-Retarget"] =
+              destinationLayouts[sharedLayoutCount - 1]?.layout.pageTarget ??
+              "body";
+          }
         }
         const ttl = normalizeCacheTtl(page.cache);
         const isCacheEnabled =
           page.cache === true || page.cache === false
             ? page.cache === true
             : page.cache != undefined;
-        const cacheKey = pageCacheKey(path, context);
+        const cacheKey = pageCacheKey(path, context, sharedLayoutCount);
 
         if (isCacheEnabled) {
           const cached = getCached(cacheKey);
@@ -83,7 +92,12 @@ export function buildPages(
 
         const renderedPage = await page.render(context);
         const body = context.isHtmx
-          ? renderedPage
+          ? await renderHtmxPage(
+              renderedPage,
+              destinationLayouts,
+              context,
+              sharedLayoutCount,
+            )
           : await options.renderDocument({
               context,
               head: page.head,
@@ -113,24 +127,41 @@ export function buildPages(
   return bunRoutes;
 }
 
-function hasCompatibleCurrentLayouts(
+function getSharedCurrentLayoutCount(
   request: Request,
   destinationLayouts: ReturnType<typeof resolveLayouts>,
   layouts: Record<string, MiniLayout>,
-): boolean {
+): number | undefined {
+  if (request.headers.get("HX-Boosted") !== "true") return;
+
   const currentUrl = request.headers.get("HX-Current-URL");
-  if (!currentUrl) return false;
+  if (!currentUrl) return;
 
   try {
     const current = new URL(currentUrl);
     const destination = new URL(request.url);
-    if (current.origin !== destination.origin) return false;
+    if (current.origin !== destination.origin) return;
 
-    return isSameLayoutChain(
+    return sharedLayoutPrefixLength(
       resolveLayouts(layouts, current.pathname),
       destinationLayouts,
     );
   } catch {
-    return false;
+    return;
   }
+}
+
+async function renderHtmxPage(
+  page: string,
+  destinationLayouts: ReturnType<typeof resolveLayouts>,
+  context: MiniContext,
+  sharedLayoutCount: number | undefined,
+): Promise<string> {
+  if (sharedLayoutCount === undefined) return page;
+
+  return await composeLayouts(
+    page,
+    destinationLayouts.slice(sharedLayoutCount),
+    context,
+  );
 }

@@ -46,6 +46,31 @@ export function isSameLayoutChain(
   );
 }
 
+/** Count the matching outer layouts shared by two resolved route chains. */
+export function sharedLayoutPrefixLength(
+  first: readonly ResolvedLayout[],
+  second: readonly ResolvedLayout[],
+): number {
+  let length = 0;
+
+  while (true) {
+    const firstLayout = first[length];
+    const secondLayout = second[length];
+
+    if (
+      firstLayout === undefined ||
+      secondLayout === undefined ||
+      firstLayout.pattern !== secondLayout.pattern
+    ) {
+      break;
+    }
+
+    length += 1;
+  }
+
+  return length;
+}
+
 function isLayoutPatternMatch(pattern: string, pathname: string): boolean {
   if (pattern === "*") return true;
 

@@ -6,7 +6,7 @@ export const navigation = partial(
     <div>
       <nav>
         <a href="/">Home</a>
-        <a href="/docs">Docs</a>
+        <a href="/docs/getting-started">Docs</a>
         <a href="/reference">Reference</a>
       </nav>
 

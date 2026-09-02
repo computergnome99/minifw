@@ -111,6 +111,49 @@ test("documentation navigation uses static native disclosures", async () => {
   ).toBe(false);
 }, 15_000);
 
+test("navigation keeps the app layout while entering documentation", async () => {
+  await using view = createWebView();
+  await view.navigate("about:blank");
+  await view.cdp("Emulation.setDeviceMetricsOverride", {
+    deviceScaleFactor: 1,
+    height: 900,
+    mobile: false,
+    width: 1280,
+  });
+  await view.navigate(`${baseUrl}/`);
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const hasDocsLink = await view.evaluate(
+      "Boolean(document.querySelector('a[href=\"/docs/getting-started\"]'))",
+    );
+    if (hasDocsLink) break;
+    await Bun.sleep(100);
+  }
+
+  await view.evaluate(
+    "document.querySelector('main')?.setAttribute('data-instance', 'initial')",
+  );
+  const settle = view.evaluate(
+    "new Promise((resolve) => document.body.addEventListener('htmx:after:settle', () => { if (location.pathname === '/docs/getting-started') resolve(null) }))",
+  );
+  await view.click('a[href="/docs/getting-started"]');
+  await settle;
+
+  expect((await view.evaluate("location.pathname")) as string).toBe(
+    "/docs/getting-started",
+  );
+  expect(
+    (await view.evaluate(
+      "document.querySelector('main')?.getAttribute('data-instance')",
+    )) as string | undefined,
+  ).toBe("initial");
+  expect(
+    (await view.evaluate(
+      "Boolean(document.querySelector('main > [data-docs-tree]'))",
+    )) as boolean,
+  ).toBe(true);
+}, 15_000);
+
 test("documentation navigation opens and closes a modal dialog on mobile", async () => {
   await using view = createWebView();
   await view.navigate("about:blank");
