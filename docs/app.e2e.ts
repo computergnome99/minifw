@@ -235,7 +235,21 @@ test("documentation navigation opens and closes a modal dialog on mobile", async
     mobile: true,
     width: 390,
   });
-  await view.navigate(`${baseUrl}/docs`);
+  await view.navigate(`${baseUrl}/`);
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const hasDocumentationLink = await view.evaluate(
+      "Boolean(document.querySelector('a[href=\"/docs/getting-started\"]'))",
+    );
+    if (hasDocumentationLink) break;
+    await Bun.sleep(100);
+  }
+
+  const enterDocumentation = view.evaluate(
+    "new Promise((resolve) => document.body.addEventListener('htmx:after:settle', () => { if (location.pathname === '/docs/getting-started') resolve(null) }))",
+  );
+  await view.click('a[href="/docs/getting-started"]');
+  await enterDocumentation;
 
   expect(
     (await view.evaluate(
