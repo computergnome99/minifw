@@ -19,17 +19,40 @@ const pageLayout = layout(
       hx-swap="outerHTML"
       style="height: 48px;"
     ></div>
-    <main id="app-page" style="scroll-margin-top: 48px">${page}</main>
+    <main id="app-page">${page}</main>
   `,
   { pageTarget: "#app-page" },
 );
 
 const contentLayout = (tree: MiniFragment) =>
   layout(
-    async ({ page }) => html`
-      ${await tree()}
-      <section id="docs-page" style="scroll-margin-top: 48px">${page}</section>
-    `,
+    async ({ page }) => {
+      const treeview = await tree();
+
+      return html`
+        ${treeview}
+
+        <div data-docs-mobile-navigation>
+          <button type="button" data-docs-navigation-open>
+            Browse Sections
+          </button>
+
+          <dialog
+            id="docs-navigation-popover"
+            aria-label="Documentation Navigation"
+          >
+            <h1>Sections</h1>
+            <button type="button" data-docs-navigation-close autofocus>
+              <span class="fa-regular fa-sharp fa-xmark"></span>
+              <span class="sr-only">Close popover</span>
+            </button>
+            <div>${treeview}</div>
+          </dialog>
+        </div>
+
+        <section id="docs-page">${page}</section>
+      `;
+    },
     { pageTarget: "#docs-page" },
   );
 
@@ -47,6 +70,7 @@ const server = mini({
     document: {
       htmlAttributes: { lang: "en" },
       head: () => html`
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script
           src="https://kit.fontawesome.com/a80ebe0155.js"
           crossorigin="anonymous"
@@ -57,6 +81,7 @@ const server = mini({
       Bun.file(new URL("styles/main.css", import.meta.url)),
       () => treeviewStyles,
     ],
+    scripts: Bun.file(new URL("scripts/mobile-navigation.ts", import.meta.url)),
   },
   routes: {
     "/": home,

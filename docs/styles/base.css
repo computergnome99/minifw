@@ -15,6 +15,10 @@ body {
 
 :where(.content) {
   padding-block: 2rem 4rem;
+
+  @media (width <= 1100px) {
+    padding-block: 0 4rem;
+  }
 }
 
 :where(.content > *) {

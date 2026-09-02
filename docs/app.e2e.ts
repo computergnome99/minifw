@@ -33,11 +33,18 @@ afterAll(async () => {
 
 test("documentation navigation uses static native disclosures", async () => {
   await using view = createWebView();
+  await view.navigate("about:blank");
+  await view.cdp("Emulation.setDeviceMetricsOverride", {
+    deviceScaleFactor: 1,
+    height: 900,
+    mobile: false,
+    width: 1280,
+  });
   await view.navigate(`${baseUrl}/docs`);
 
   for (let attempt = 0; attempt < 50; attempt += 1) {
     const tree = await view.evaluate(
-      "document.querySelector('[data-docs-tree]')",
+      "document.querySelector('main > [data-docs-tree]')",
     );
     if (tree) break;
     await Bun.sleep(100);
@@ -45,36 +52,36 @@ test("documentation navigation uses static native disclosures", async () => {
 
   expect(
     (await view.evaluate(
-      "document.querySelector('[data-docs-tree]')?.getAttribute('aria-label')",
+      "document.querySelector('main > [data-docs-tree]')?.getAttribute('aria-label')",
     )) as string | undefined,
   ).toBe("Documentation sections");
   expect(
     (await view.evaluate(
-      "document.querySelectorAll('[data-docs-tree] details > summary').length",
+      "document.querySelectorAll('main > [data-docs-tree] details > summary').length",
     )) as number,
   ).toBe(3);
   expect(
     (await view.evaluate(
-      "getComputedStyle(document.querySelector('[data-docs-tree] summary')).display",
+      "getComputedStyle(document.querySelector('main > [data-docs-tree] summary')).display",
     )) as string,
-  ).toBe("list-item");
+  ).toBe("block");
   await view.evaluate(
-    "document.querySelector('[data-docs-tree] summary')?.click()",
+    "document.querySelector('main > [data-docs-tree] summary')?.click()",
   );
 
   expect(
     (await view.evaluate(
-      "document.querySelector('[data-docs-tree] details')?.hasAttribute('open')",
+      "document.querySelector('main > [data-docs-tree] details')?.hasAttribute('open')",
     )) as boolean | undefined,
   ).toBe(true);
 
   await view.evaluate(
-    "document.querySelector('[data-docs-tree]')?.setAttribute('data-instance', 'initial')",
+    "document.querySelector('main > [data-docs-tree]')?.setAttribute('data-instance', 'initial')",
   );
   const settle = view.evaluate(
     "new Promise((resolve) => document.body.addEventListener('htmx:after:settle', () => { if (location.pathname === '/docs/core/page') resolve(null) }))",
   );
-  await view.click('[data-docs-tree] a[href="/docs/core/page"]');
+  await view.click('main > [data-docs-tree] a[href="/docs/core/page"]');
   await settle;
 
   expect((await view.evaluate("location.pathname")) as string).toBe(
@@ -82,12 +89,12 @@ test("documentation navigation uses static native disclosures", async () => {
   );
   expect(
     (await view.evaluate(
-      "document.querySelector('[data-docs-tree]')?.getAttribute('data-instance')",
+      "document.querySelector('main > [data-docs-tree]')?.getAttribute('data-instance')",
     )) as string | undefined,
   ).toBe("initial");
   expect(
     (await view.evaluate(
-      "document.querySelector('[data-docs-tree] details')?.hasAttribute('open')",
+      "document.querySelector('main > [data-docs-tree] details')?.hasAttribute('open')",
     )) as boolean | undefined,
   ).toBe(true);
   expect(
@@ -99,13 +106,85 @@ test("documentation navigation uses static native disclosures", async () => {
 
   expect(
     (await view.evaluate(
-      "document.querySelector('[data-docs-tree] summary')?.hasAttribute('hx-get')",
+      "document.querySelector('main > [data-docs-tree] summary')?.hasAttribute('hx-get')",
     )) as boolean | undefined,
   ).toBe(false);
 }, 15_000);
 
+test("documentation navigation opens and closes a modal dialog on mobile", async () => {
+  await using view = createWebView();
+  await view.navigate("about:blank");
+  await view.cdp("Emulation.setDeviceMetricsOverride", {
+    deviceScaleFactor: 1,
+    height: 844,
+    mobile: true,
+    width: 390,
+  });
+  await view.navigate(`${baseUrl}/docs`);
+
+  expect(
+    (await view.evaluate(
+      "getComputedStyle(document.querySelector('[data-docs-mobile-navigation] > button')).display !== 'none'",
+    )) as boolean,
+  ).toBe(true);
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-mobile-navigation] dialog')?.open",
+    )) as boolean | undefined,
+  ).toBe(false);
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-mobile-navigation] dialog')?.matches(':modal')",
+    )) as boolean | undefined,
+  ).toBe(false);
+
+  await view.evaluate(
+    "document.querySelector('[data-docs-mobile-navigation] [data-docs-navigation-open]')?.click()",
+  );
+
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-mobile-navigation] dialog')?.open",
+    )) as boolean | undefined,
+  ).toBe(true);
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-mobile-navigation] dialog')?.matches(':modal')",
+    )) as boolean | undefined,
+  ).toBe(true);
+  expect(
+    (await view.evaluate(
+      "(() => { const rect = document.querySelector('[data-docs-mobile-navigation] dialog')?.getBoundingClientRect(); return rect && rect.left >= 16 && innerWidth - rect.right >= 16 && rect.top >= 16 && innerHeight - rect.bottom >= 16; })()",
+    )) as boolean,
+  ).toBe(true);
+  await captureScreenshot(view, "docs", "mobile-navigation-expanded");
+  await view.evaluate(
+    "document.querySelector('[data-docs-mobile-navigation] dialog details summary')?.click()",
+  );
+  const settle = view.evaluate(
+    "new Promise((resolve) => document.body.addEventListener('htmx:after:settle', () => { if (location.pathname === '/docs/core/page') resolve(null) }))",
+  );
+  await view.click(
+    '[data-docs-mobile-navigation] dialog a[href="/docs/core/page"]',
+  );
+  await settle;
+  expect(
+    (await view.evaluate(
+      "document.querySelector('[data-docs-mobile-navigation] dialog')?.open",
+    )) as boolean | undefined,
+  ).toBe(false);
+  await view.cdp("Emulation.clearDeviceMetricsOverride");
+}, 15_000);
+
 test("reference renders the generated Typedoc manifest in the docs layout", async () => {
   await using view = createWebView();
+  await view.navigate("about:blank");
+  await view.cdp("Emulation.setDeviceMetricsOverride", {
+    deviceScaleFactor: 1,
+    height: 900,
+    mobile: false,
+    width: 1280,
+  });
   await view.navigate(`${baseUrl}/reference`);
 
   for (let attempt = 0; attempt < 50; attempt += 1) {
