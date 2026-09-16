@@ -15,12 +15,17 @@ import { buildContext } from "./build-context";
  * @param partials
  */
 export function buildPartials(partials: Record<string, MiniPartial>) {
-  const bunRoutes: Record<string, (request: Request) => Promise<Response>> = {};
+  const bunRoutes: Record<
+    string,
+    (request: Bun.BunRequest) => Promise<Response>
+  > = {};
 
   for (const [name, partial] of Object.entries(partials)) {
     const normalizedName = name.replace(/^\/+/, "");
 
-    bunRoutes[`/partial/${normalizedName}`] = async (request: Request) => {
+    bunRoutes[`/partial/${normalizedName}`] = async (
+      request: Bun.BunRequest,
+    ) => {
       try {
         const context = buildContext(request, `/partial/${normalizedName}`);
         const ttl = normalizeCacheTtl(partial.cache);

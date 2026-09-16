@@ -31,7 +31,7 @@ afterAll(async () => {
   await server?.exited;
 });
 
-test("Express on Node renders MiniFW pages without mini", async () => {
+test("Express on Node renders a product route", async () => {
   await using view = createWebView();
   await view.navigate("http://127.0.0.1:3106/products/espresso");
 

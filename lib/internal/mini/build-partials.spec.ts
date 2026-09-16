@@ -4,6 +4,10 @@ import { redirectTo } from "../../helpers/redirect-to";
 import { partial } from "../../core/partial";
 import { buildPartials } from "./build-partials";
 
+function createRequest(url: string): Bun.BunRequest {
+  return new Request(url) as Bun.BunRequest;
+}
+
 describe("buildPartials", () => {
   test("registers normalized partial route names", async () => {
     const handlers = buildPartials({
@@ -13,7 +17,7 @@ describe("buildPartials", () => {
     expect(Object.keys(handlers)).toContain("/partial/greeting");
 
     const response = await handlers["/partial/greeting"]!(
-      new Request("http://localhost/partial/greeting"),
+      createRequest("http://localhost/partial/greeting"),
     );
     expect(await response.text()).toBe("<p>Hello</p>");
   });
@@ -31,10 +35,10 @@ describe("buildPartials", () => {
     });
 
     const first = await handlers["/partial/stable"]!(
-      new Request("http://localhost/partial/stable"),
+      createRequest("http://localhost/partial/stable"),
     );
     const second = await handlers["/partial/stable"]!(
-      new Request("http://localhost/partial/stable"),
+      createRequest("http://localhost/partial/stable"),
     );
 
     expect(await first.text()).toBe("<p>1</p>");
@@ -53,7 +57,9 @@ describe("buildPartials", () => {
     });
 
     await expect(() =>
-      handlers["/partial/fail"]!(new Request("http://localhost/partial/fail")),
+      handlers["/partial/fail"]!(
+        createRequest("http://localhost/partial/fail"),
+      ),
     ).toThrow(MiniHttpError);
   });
 
@@ -65,7 +71,7 @@ describe("buildPartials", () => {
     });
 
     const response = await handlers["/partial/account"]!(
-      new Request("http://localhost/partial/account"),
+      createRequest("http://localhost/partial/account"),
     );
 
     expect(response.status).toBe(302);

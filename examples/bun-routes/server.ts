@@ -5,12 +5,10 @@ const product = page(
   ({ params }) => html`<h1 data-product-name>Product ${params["name"]}</h1>`,
 );
 
-type RoutedRequest = Request & { params?: Record<string, string> };
-
 Bun.serve({
   port: 3105,
   routes: {
-    "/products/:name": async (request: RoutedRequest) => {
+    "/products/:name": async (request) => {
       const context = {
         request,
         url: new URL(request.url),

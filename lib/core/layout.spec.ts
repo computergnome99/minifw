@@ -3,7 +3,7 @@ import { layout } from "./layout";
 import type { MiniContext } from "./shared";
 
 const context: MiniContext = {
-  request: new Request("http://localhost/"),
+  request: new Request("http://localhost/") as Bun.BunRequest,
   url: new URL("http://localhost/"),
   params: {},
   isHtmx: false,

@@ -9,7 +9,9 @@ import {
 } from "./layouts";
 
 const context: MiniContext = {
-  request: new Request("http://localhost/admin/example/report"),
+  request: new Request(
+    "http://localhost/admin/example/report",
+  ) as Bun.BunRequest,
   url: new URL("http://localhost/admin/example/report"),
   params: {},
   isHtmx: false,

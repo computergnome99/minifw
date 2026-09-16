@@ -8,7 +8,10 @@ import { extractParameters } from "./extract-parameters";
  * @param request
  * @param route
  */
-export function buildContext(request: Request, route?: string): MiniContext {
+export function buildContext(
+  request: Bun.BunRequest,
+  route?: string,
+): MiniContext {
   return {
     request: request,
     url: new URL(request.url),

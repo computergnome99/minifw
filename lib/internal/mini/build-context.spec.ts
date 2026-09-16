@@ -5,8 +5,8 @@ describe("buildContext", () => {
   test("creates a full MiniContext from request", () => {
     const request = new Request("http://localhost/users/alice", {
       headers: { "HX-Request": "true" },
-    }) as Request & { params?: Record<string, string> };
-    request.params = { user: "alice" };
+    }) as Bun.BunRequest;
+    Object.defineProperty(request, "params", { value: { user: "alice" } });
 
     const context = buildContext(request, "/users/:user");
 

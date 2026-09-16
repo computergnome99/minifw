@@ -6,7 +6,9 @@ import type { MiniContext } from "./shared";
 const render = () => "ok";
 
 describe("partial", () => {
-  const baseRequest = new Request("http://localhost/partial/test");
+  const baseRequest = new Request(
+    "http://localhost/partial/test",
+  ) as Bun.BunRequest;
 
   test("renders content for HTMX requests by default", async () => {
     const view = partial(({ params }) => `User: ${params["user"]}`);

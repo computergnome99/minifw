@@ -3,7 +3,9 @@ import type { MiniContext, MiniHead } from "./shared";
 
 describe("shared types", () => {
   test("MiniContext can represent request metadata shape", () => {
-    const request = new Request("http://localhost/products/42");
+    const request = new Request(
+      "http://localhost/products/42",
+    ) as Bun.BunRequest;
 
     const context: MiniContext = {
       request,
@@ -14,6 +16,20 @@ describe("shared types", () => {
 
     expect(context.params["id"]).toBe("42");
     expect(context.isHtmx).toBe(true);
+  });
+
+  test("MiniContext exposes Bun request metadata", () => {
+    const request = new Request("http://localhost/") as Bun.BunRequest;
+    const context: MiniContext = {
+      request,
+      url: new URL(request.url),
+      params: {},
+      isHtmx: false,
+    };
+
+    const requestWithCookies: Pick<Bun.BunRequest, "cookies"> = context.request;
+
+    expect(requestWithCookies).toBe(request);
   });
 
   test("MiniHead can represent optional page metadata", () => {

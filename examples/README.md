@@ -7,7 +7,7 @@ and has a Bun WebView test beside it.
 | App          | Server                  | Behavior covered                                   | Run manually             |
 | ------------ | ----------------------- | -------------------------------------------------- | ------------------------ |
 | `bun-routes` | `Bun.serve({ routes })` | Manual page and layout rendering with route params | `bun run run:bun-routes` |
-| `express`    | Express on Node + `tsx` | Manual MiniFW page rendering                       | `bun run run:express`    |
+| `express`    | Express on Node + `tsx` | Plain Express product route                        | `bun run run:express`    |
 | `htmx-1`     | Bun + HTMX 1.9.12       | Partial routes and `hx-swap="outerHTML"`           | `bun run run:htmx-1`     |
 | `htmx-2`     | Bun + HTMX 2.0.4        | Boosted page navigation and scoped-style promotion | `bun run run:htmx-2`     |
 | `htmx-4`     | Bun + HTMX 4.0.0        | Explicitly inherited boosted navigation            | `bun run run:htmx-4`     |

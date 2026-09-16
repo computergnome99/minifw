@@ -38,7 +38,7 @@ available as `context.params["id"]`.
 
 | Field     | Description                                                |
 | :-------- | :--------------------------------------------------------- |
-| `request` | Original incoming `Request`                                |
+| `request` | Original incoming `Bun.BunRequest`, including `cookies`    |
 | `url`     | Parsed request `URL`, including search parameters          |
 | `route`   | Matched route pattern, when the page is served by `mini()` |
 | `params`  | Route parameters as a string record                        |

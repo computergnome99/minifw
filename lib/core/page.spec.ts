@@ -7,7 +7,7 @@ const renderOk = () => "ok";
 
 describe("page", () => {
   const context: MiniContext = {
-    request: new Request("http://localhost/hello/world"),
+    request: new Request("http://localhost/hello/world") as Bun.BunRequest,
     url: new URL("http://localhost/hello/world"),
     params: { name: "world" },
     isHtmx: false,

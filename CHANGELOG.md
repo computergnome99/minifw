@@ -2,6 +2,13 @@
 
 All notable changes to MiniFW will be documented in this file.
 
+## [0.2.1]
+
+### Fixed
+
+- Render contexts now expose Bun's `Bun.BunRequest`, including request cookies
+  and other Bun-specific metadata.
+
 ## [0.2.0]
 
 ### Added

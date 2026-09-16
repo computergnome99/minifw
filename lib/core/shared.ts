@@ -7,8 +7,8 @@ import type { MiniLayout } from "./layout";
  * {@link MiniLayout} render functions.
  */
 export interface MiniContext {
-  /** The raw incoming {@link Request}. */
-  request: Request;
+  /** The raw incoming {@link Bun.BunRequest}, including Bun-specific metadata. */
+  request: Bun.BunRequest;
   /** The parsed request {@link URL}. */
   url: URL;
   /** The matched route path used for route-specific rendering behavior. */

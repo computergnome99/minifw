@@ -35,10 +35,13 @@ export function buildPages(
   routes: Record<string, MiniPage>,
   options: BuildPagesOptions,
 ) {
-  const bunRoutes: Record<string, (request: Request) => Promise<Response>> = {};
+  const bunRoutes: Record<
+    string,
+    (request: Bun.BunRequest) => Promise<Response>
+  > = {};
 
   for (const [path, page] of Object.entries(routes)) {
-    bunRoutes[path] = async (request: Request) => {
+    bunRoutes[path] = async (request: Bun.BunRequest) => {
       try {
         const context = buildContext(request, path);
         const destinationLayouts = resolveLayouts(

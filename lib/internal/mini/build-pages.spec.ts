@@ -15,6 +15,10 @@ const renderDocumentWithHead = async ({
   page: string;
 }) => html`<document title="${head?.title}">${content}</document>`;
 
+function createRequest(url: string, init?: RequestInit): Bun.BunRequest {
+  return new Request(url, init) as Bun.BunRequest;
+}
+
 const layouts = {
   "*": layout(({ page: content }) => `<main id="app">${content}</main>`, {
     pageTarget: "#app",
@@ -33,7 +37,7 @@ describe("buildPages", () => {
     );
 
     const response = await handlers["/docs/*"]!(
-      new Request("http://localhost/docs/guide"),
+      createRequest("http://localhost/docs/guide"),
     );
 
     expect(await response.text()).toBe(
@@ -52,7 +56,7 @@ describe("buildPages", () => {
     );
 
     const response = await handlers["/docs/:title"]!(
-      new Request("http://localhost/docs/guide"),
+      createRequest("http://localhost/docs/guide"),
     );
 
     expect(await response.text()).toContain('<document title="guide">');
@@ -65,7 +69,7 @@ describe("buildPages", () => {
     );
 
     const response = await handlers["/docs/*"]!(
-      new Request("http://localhost/docs/next", {
+      createRequest("http://localhost/docs/next", {
         headers: {
           "HX-Boosted": "true",
           "HX-Current-URL": "http://localhost/docs/guide",
@@ -86,7 +90,7 @@ describe("buildPages", () => {
     );
 
     const response = await handlers["/docs/*"]!(
-      new Request("http://localhost/docs/guide?tab=api", {
+      createRequest("http://localhost/docs/guide?tab=api", {
         headers: {
           "HX-Boosted": "true",
           "HX-Current-URL": "http://localhost/",
@@ -109,7 +113,7 @@ describe("buildPages", () => {
     );
 
     const fromApp = await handlers["/docs/*"]!(
-      new Request("http://localhost/docs/guide", {
+      createRequest("http://localhost/docs/guide", {
         headers: {
           "HX-Boosted": "true",
           "HX-Current-URL": "http://localhost/",
@@ -118,7 +122,7 @@ describe("buildPages", () => {
       }),
     );
     const fromDocumentation = await handlers["/docs/*"]!(
-      new Request("http://localhost/docs/guide", {
+      createRequest("http://localhost/docs/guide", {
         headers: {
           "HX-Boosted": "true",
           "HX-Current-URL": "http://localhost/docs/other",
@@ -140,7 +144,7 @@ describe("buildPages", () => {
     );
 
     const response = await handlers["/docs/*"]!(
-      new Request("http://localhost/docs/guide", {
+      createRequest("http://localhost/docs/guide", {
         headers: { "HX-Boosted": "true", "HX-Request": "true" },
       }),
     );
@@ -155,7 +159,7 @@ describe("buildPages", () => {
     );
 
     const response = await handlers["/docs/*"]!(
-      new Request("http://localhost/docs/guide", {
+      createRequest("http://localhost/docs/guide", {
         headers: { "HX-Request": "true" },
       }),
     );
