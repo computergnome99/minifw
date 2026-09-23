@@ -8,6 +8,5 @@ export * from "./each";
 export * from "./error";
 export * from "./html";
 export * from "./is-htmx";
-export * from "./md";
 export * from "./redirect-to";
 export * from "./repeat";
